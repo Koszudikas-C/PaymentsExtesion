@@ -1,0 +1,15 @@
+{
+    "name": "user/extension",
+    "autoload": {
+        "psr-4": {
+            "User\\Extension\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Koszudikas-C",
+            "email": "matheusprgc@gmail.com"
+        }
+    ],
+    "require": {}
+}
