@@ -2,7 +2,7 @@
     "name": "user/extension",
     "autoload": {
         "psr-4": {
-            "User\\Extension\\": "src/"
+            "App\\": "src/"
         }
     },
     "authors": [
@@ -14,6 +14,7 @@
     "require": {
         "phpmailer/phpmailer": "^7.0",
         "vlucas/phpdotenv": "^5.6",
-        "monolog/monolog": "^3.10"
+        "monolog/monolog": "^3.10",
+        "php-di/php-di": "^7.1"
     }
 }
