@@ -428,6 +428,6 @@ FodyWeavers.xsd
 *.msm
 *.msp
 
+.phpunit.cache/
 .env
 vendor
-.phpunit.cache/*
