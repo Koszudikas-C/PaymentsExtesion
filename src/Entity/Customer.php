@@ -1,0 +1,120 @@
+<?php
+
+namespace App\Entity;
+
+use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use App\Repository\CustomerRepository;
+use InvalidArgumentException;
+
+#[ORM\Entity(repositoryClass: CustomerRepository::class)]
+#[ORM\Table(name: 'customers')]
+#[ORM\HasLifecycleCallbacks]
+class Customer extends BaseEntity
+{
+    #[ORM\Column(length: 255)]
+    private string $name;
+
+    #[ORM\Column(length: 255, unique: true)]
+    private string $email;
+
+    #[ORM\Column(length: 50)]
+    private string $phone;
+
+    #[ORM\Column(length: 50, nullable: true, unique: true)]
+    private ?string $licenseKey = null;
+
+    #[ORM\Column(length: 50)]
+    private string $paymentStatus = 'PENDING';
+
+    #[ORM\Column(type: 'boolean')]
+    private bool $isLicenseDelivered = false;
+
+    #[ORM\Column(type: 'integer')]
+    private int $deliveryFailureCount = 0;
+
+    #[ORM\OneToMany(mappedBy: 'customer', targetEntity: AuditLog::class, cascade: ['persist', 'remove'])]
+    private Collection $auditLogs;
+
+    public function __construct(string $name, string $email, string $phone)
+    {
+        parent::__construct();
+        $this->setName($name);
+        $this->setEmail($email);
+        $this->setPhone($phone);
+        $this->auditLogs = new ArrayCollection();
+        
+        $this->recordAudit('CUSTOMER_CREATED', "Customer $name initialized.");
+    }
+
+    public function markAsPaid(string $externalId): void
+    {
+        if ($this->paymentStatus === 'RECEIVED') {
+            return;
+        }
+
+        $this->paymentStatus = 'RECEIVED';
+        $this->recordAudit('PAYMENT_RECEIVED', "Payment confirmed via Asaas (ID: $externalId)");
+    }
+
+    public function assignLicense(string $licenseKey): void
+    {
+        if ($this->licenseKey !== null && $this->licenseKey !== $licenseKey) {
+            throw new \DomainException("Customer already has a different license assigned.");
+        }
+
+        $this->licenseKey = $licenseKey;
+        $this->recordAudit('LICENSE_ASSIGNED', "License $licenseKey linked to customer.");
+    }
+
+    public function markLicenseAsDelivered(): void
+    {
+        $this->isLicenseDelivered = true;
+        $this->deliveryFailureCount = 0;
+        $this->recordAudit('LICENSE_DELIVERED', "License successfully sent to {$this->email}");
+    }
+
+    public function recordDeliveryFailure(string $reason): void
+    {
+        $this->deliveryFailureCount++;
+        $this->recordAudit('DELIVERY_FAILED', "Failed attempt #{$this->deliveryFailureCount}. Reason: $reason");
+    }
+
+    public function canRetryDelivery(): bool
+    {
+        return !$this->isLicenseDelivered && $this->deliveryFailureCount < 10;
+    }
+
+    private function recordAudit(string $action, string $details): void
+    {
+        $this->auditLogs->add(new AuditLog($this, $action, $details));
+    }
+
+    // Getters (Mantidos para leitura, Setters tornados protegidos/privados quando possível)
+
+    public function getName(): string { return $this->name; }
+    private function setName(string $name): void {
+        if (empty($name)) throw new InvalidArgumentException("Name cannot be empty");
+        $this->name = $name;
+    }
+
+    public function getEmail(): string { return $this->email; }
+    private function setEmail(string $email): void {
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) throw new InvalidArgumentException("Invalid email format");
+        $this->email = $email;
+    }
+
+    public function getPhone(): string { return $this->phone; }
+    private function setPhone(string $phone): void { $this->phone = $phone; }
+
+    public function getLicenseKey(): ?string { return $this->licenseKey; }
+    public function getPaymentStatus(): string { return $this->paymentStatus; }
+    public function isLicenseDelivered(): bool { return $this->isLicenseDelivered; }
+    public function getDeliveryFailureCount(): int { return $this->deliveryFailureCount; }
+
+    #[ORM\PreUpdate]
+    public function onPreUpdate(): void { $this->dateUpdated = new \DateTime('now'); }
+
+    public function getAuditLogs(): Collection { return $this->auditLogs; }
+}

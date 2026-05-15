@@ -34,11 +34,29 @@ class Container
                     'username' => $_ENV['MAIL_USER'],
                     'password' => $_ENV['MAIL_PASS'],
                     'port' => $_ENV['MAIL_SMTP_PORT'],
+                ],
+                'db' => [
+                    'driver'   => $_ENV['DB_DRIVER'] ?? 'pdo_mysql',
+                    'host'     => $_ENV['DB_HOST'] ?? 'localhost',
+                    'dbname'   => $_ENV['DB_NAME'] ?? 'payments_db',
+                    'user'     => $_ENV['DB_USER'] ?? 'root',
+                    'password' => $_ENV['DB_PASS'] ?? '',
                 ]
             ],
 
             // Registro de Serviços (equivalente ao ConfigureServices do .NET)
             
+            \Doctrine\ORM\EntityManagerInterface::class => function (ContainerInterface $c) {
+                $settings = $c->get('settings');
+                $config = \Doctrine\ORM\ORMSetup::createAttributeMetadataConfiguration(
+                    [__DIR__ . '/../Entity'],
+                    $_ENV['APP_ENV'] === 'development'
+                );
+                
+                $connection = \Doctrine\DBAL\DriverManager::getConnection($settings['db'], $config);
+                return new \Doctrine\ORM\EntityManager($connection, $config);
+            },
+
             Logger::class => function () {
                 $log = new Logger('payments');
                 $log->pushHandler(new RotatingFileHandler(__DIR__ . '/../../logs/app.log', 30, Logger::DEBUG));
@@ -59,6 +77,15 @@ class Container
             },
 
             LicenseServiceInterface::class => \DI\create(LicenseService::class),
+
+            // Repositories (Injeção de Abstração estilo .NET)
+            \App\Interfaces\Repositories\CustomerRepositoryInterface::class => function (ContainerInterface $c) {
+                return $c->get(\Doctrine\ORM\EntityManagerInterface::class)->getRepository(\App\Entity\Customer::class);
+            },
+
+            \App\Interfaces\Repositories\AuditLogRepositoryInterface::class => function (ContainerInterface $c) {
+                return $c->get(\Doctrine\ORM\EntityManagerInterface::class)->getRepository(\App\Entity\AuditLog::class);
+            },
 
             WebhookHandler::class => \DI\autowire()
                 ->constructorParameter('licenseSalt', \DI\get('settings.license_salt')),
