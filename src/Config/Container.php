@@ -16,11 +16,11 @@ use App\Handlers\WebhookHandler;
 
 class Container
 {
-    public static function build(): ContainerInterface
+    public static function build(array $definitions = []): ContainerInterface
     {
         $containerBuilder = new ContainerBuilder();
 
-        $containerBuilder->addDefinitions([
+        $baseDefinitions = [
             // Configurações (como o appsettings.json do .NET)
             'settings' => [
                 'license_salt' => $_ENV['LICENSE_SALT'],
@@ -92,7 +92,9 @@ class Container
             
             // Atalho para o sal (opcional)
             'settings.license_salt' => \DI\get('settings.license_salt'),
-        ]);
+        ];
+
+        $containerBuilder->addDefinitions(array_merge($baseDefinitions, $definitions));
 
         return $containerBuilder->build();
     }

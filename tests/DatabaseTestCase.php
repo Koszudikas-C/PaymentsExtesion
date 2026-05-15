@@ -22,7 +22,9 @@ abstract class DatabaseTestCase extends TestCase
             $dotenv->safeLoad();
         }
 
-        $container = Container::build();
+        $container = Container::build([
+            \App\Interfaces\EmailServiceInterface::class => \DI\create(\Tests\Mocks\MockEmailService::class)
+        ]);
         $this->entityManager = $container->get(EntityManagerInterface::class);
 
         $schemaTool = new SchemaTool($this->entityManager);
