@@ -27,5 +27,13 @@
         <env name="APP_ENV" value="testing"/>
         <env name="DB_DRIVER" value="pdo_sqlite"/>
         <env name="DB_NAME" value=":memory:"/>
+        <env name="LICENSE_SALT" value="test_salt"/>
+        <env name="BASE_URL_ASAAS" value="https://sandbox.asaas.com/api/v3"/>
+        <env name="ASAAS_ACCESS_TOKEN" value="test_token"/>
+        <env name="NAME_APP" value="TestApp"/>
+        <env name="MAIL_SMTP_HOST" value="localhost"/>
+        <env name="MAIL_USER" value="test@example.com"/>
+        <env name="MAIL_PASS" value="password"/>
+        <env name="MAIL_SMTP_PORT" value="587"/>
     </php>
 </phpunit>
