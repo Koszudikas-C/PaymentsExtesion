@@ -70,7 +70,6 @@ class WebhookHandler
         if (!$customer->getLicenseKey()) {
             $generatedLicense = $this->licenseService->generateLicense($whatsapp, $this->licenseSalt);
             
-            // Segurança: verifica duplicidade
             $otherCustomer = $this->customerRepository->findByLicenseKey($generatedLicense);
             
             if ($otherCustomer && $otherCustomer->getEmail() !== $email) {
