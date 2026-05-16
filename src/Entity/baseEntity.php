@@ -5,9 +5,6 @@ namespace App\Entity;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-use DateTime;
-use DateTimeImmutable;
-use DateTimeInterface;
 
 abstract class BaseEntity
 {
@@ -16,20 +13,20 @@ abstract class BaseEntity
     protected string $id;
     
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    protected DateTime $dateCreated;
+    protected \DateTime $dateCreated;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    protected DateTime $dateUpdated;
+    protected \DateTime $dateUpdated;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    protected DateTime $systemAccess;
+    protected \DateTime $systemAccess;
 
     public function __construct()
     {
         $this->id = $this->generateUuid();
-        $this->dateCreated = new DateTime('now');
-        $this->dateUpdated = new DateTime('now');
-        $this->systemAccess = new DateTime('now');
+        $this->dateCreated = new \DateTime('now');
+        $this->dateUpdated = new \DateTime('now');
+        $this->systemAccess = new \DateTime('now');
     }
     
     /**
@@ -57,17 +54,17 @@ abstract class BaseEntity
         return $this->id;
     }
 
-    public function getDateCreated(): DateTime
+    public function getDateCreated(): \DateTime
     {
         return $this->dateCreated;
     }
 
-    public function getDateUpdated(): DateTime
+    public function getDateUpdated(): \DateTime
     {
         return $this->dateUpdated;
     }
 
-    public function getSystemAccess(): DateTime
+    public function getSystemAccess(): \DateTime
     {
         return $this->systemAccess;
     }
@@ -77,7 +74,7 @@ abstract class BaseEntity
      */
     public function setSystemAccess() : void 
     {
-      $this->systemAccess = new DateTime('now');
+      $this->systemAccess = new \DateTime('now');
     }
 
     /**
