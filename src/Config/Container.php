@@ -36,23 +36,23 @@ class Container
                     'port' => $_ENV['MAIL_SMTP_PORT'],
                 ],
                 'db' => [
-                    'driver'   => $_ENV['DB_DRIVER'] ?? 'pdo_mysql',
-                    'host'     => $_ENV['DB_HOST'] ?? 'localhost',
-                    'dbname'   => $_ENV['DB_NAME'] ?? 'payments_db',
-                    'user'     => $_ENV['DB_USER'] ?? 'root',
-                    'password' => $_ENV['DB_PASS'] ?? '',
+                    'driver'   => $_ENV['DB_DRIVER'],
+                    'host'     => $_ENV['DB_HOST'],
+                    'dbname'   => $_ENV['DB_NAME'],
+                    'user'     => $_ENV['DB_USER'],
+                    'password' => $_ENV['DB_PASS'],
                 ]
             ],
 
             // Registro de Serviços (equivalente ao ConfigureServices do .NET)
-            
+
             \Doctrine\ORM\EntityManagerInterface::class => function (ContainerInterface $c) {
                 $settings = $c->get('settings');
                 $config = \Doctrine\ORM\ORMSetup::createAttributeMetadataConfiguration(
                     [__DIR__ . '/../Entity'],
                     $_ENV['APP_ENV'] === 'development'
                 );
-                
+
                 $connection = \Doctrine\DBAL\DriverManager::getConnection($settings['db'], $config);
                 return new \Doctrine\ORM\EntityManager($connection, $config);
             },
@@ -89,9 +89,11 @@ class Container
 
             WebhookHandler::class => \DI\autowire()
                 ->constructorParameter('licenseSalt', \DI\get('settings.license_salt')),
-            
-            // Atalho para o sal (opcional)
-            'settings.license_salt' => \DI\get('settings.license_salt'),
+
+            // Atalho para o sal
+            'settings.license_salt' => function (ContainerInterface $c) {
+                return $c->get('settings')['license_salt'];
+            },
         ];
 
         $containerBuilder->addDefinitions(array_merge($baseDefinitions, $definitions));

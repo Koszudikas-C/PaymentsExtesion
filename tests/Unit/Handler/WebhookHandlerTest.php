@@ -14,13 +14,13 @@ use Monolog\Logger;
 
 class WebhookHandlerTest extends TestCase
 {
-    private $gateway;
-    private $emailService;
-    private $licenseService;
-    private $customerRepo;
-    private $auditRepo;
-    private $logger;
-    private $handler;
+    private PaymentGatewayInterface|\PHPUnit\Framework\MockObject\MockObject $gateway;
+    private EmailServiceInterface|\PHPUnit\Framework\MockObject\MockObject $emailService;
+    private LicenseServiceInterface|\PHPUnit\Framework\MockObject\MockObject $licenseService;
+    private CustomerRepositoryInterface|\PHPUnit\Framework\MockObject\MockObject $customerRepo;
+    private AuditLogRepositoryInterface|\PHPUnit\Framework\MockObject\MockObject $auditRepo;
+    private Logger|\PHPUnit\Framework\MockObject\MockObject $logger;
+    private WebhookHandler $handler;
 
     protected function setUp(): void
     {
@@ -67,6 +67,7 @@ class WebhookHandlerTest extends TestCase
 
         $this->emailService->expects($this->once())
             ->method('sendLicenseEmail')
+            ->with('user@example.com', 'ABCD-1234', $this->logger, 'User Test')
             ->willReturn(true);
 
         $this->customerRepo->expects($this->once())

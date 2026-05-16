@@ -94,7 +94,7 @@ class WebhookHandler
 
         $this->logger->info('Attempting License Delivery', ['email' => $customer->getEmail()]);
 
-        if ($this->emailService->sendLicenseEmail($customer->getEmail(), $customer->getLicenseKey(), $this->logger)) {
+        if ($this->emailService->sendLicenseEmail($customer->getEmail(), $customer->getLicenseKey(), $this->logger, $customer->getName())) {
             $customer->markLicenseAsDelivered();
         } else {
             $customer->recordDeliveryFailure('SMTP Error - check logs');

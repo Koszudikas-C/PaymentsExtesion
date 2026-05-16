@@ -16,10 +16,11 @@ class PHPMailerService implements EmailServiceInterface
         $this->config = $config;
     }
 
-    public function sendLicenseEmail(string $to, string $licenseCode, Logger $log): bool
+    public function sendLicenseEmail(string $to, string $licenseCode, Logger $log, string $customerName = 'Usuário'): bool
     {
         $mail = new PHPMailer(true);
         try {
+            // SMTP Config
             $mail->isSMTP();
             $mail->Host       = $this->config['host'];
             $mail->SMTPAuth   = true;
@@ -41,12 +42,25 @@ class PHPMailerService implements EmailServiceInterface
                 ]
             ];
 
+            // Recipients
             $mail->setFrom($this->config['username'], 'Equipe ExtensionWebDrive');
             $mail->addAddress($to);
 
+            // Content
+            $templatePath = __DIR__ . '/../../templates/license_email.html';
+            
+            if (file_exists($templatePath)) {
+                $body = file_get_contents($templatePath);
+                $body = str_replace('{{customer_name}}', $customerName, $body);
+                $body = str_replace('{{license_key}}', $licenseCode, $body);
+            } else {
+                $log->warning('Email template not found, using fallback body', ['path' => $templatePath]);
+                $body = "Sua chave de ativacao vitalicia e: <b>{$licenseCode}</b>";
+            }
+
             $mail->isHTML(true);
             $mail->Subject = 'Seu Acesso Pro Liberado!';
-            $mail->Body    = "Sua chave de ativacao vitalicia e: <b>{$licenseCode}</b>";
+            $mail->Body    = $body;
 
             $mail->send();
             return true;

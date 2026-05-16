@@ -14,11 +14,12 @@ $container = Container::build();
 
 $log = $container->get(Logger::class);
 
-$headers = getallheaders();
+$headers = array_change_key_case(getallheaders(), CASE_LOWER);
 $asaasToken = $headers['asaas-access-token'] ?? '';
 
 if ($asaasToken !== $_ENV['ASAAS_TOKEN']) {
     $log->warning('Invalid Token', ['received' => $asaasToken]);
+    $log->warning('Headers', $headers);
     http_response_code(401);
     exit;
 }
@@ -36,9 +37,9 @@ try {
     // 6. Resolve o Handler via Container (Injeção Automática)
     /** @var WebhookHandler $handler */
     $handler = $container->get(WebhookHandler::class);
-    
+
     $handler->handle($data);
-    
+
     http_response_code(200);
     echo json_encode(["status" => "success"]);
 } catch (\Exception $e) {
