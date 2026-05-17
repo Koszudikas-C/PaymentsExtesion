@@ -59,7 +59,9 @@ class Container
 
             Logger::class => function () {
                 $log = new Logger('payments');
-                $log->pushHandler(new RotatingFileHandler(__DIR__ . '/../../logs/app.log', 30, Logger::DEBUG));
+                $handler = new RotatingFileHandler(__DIR__ . '/../../logs/app.log', 30, Logger::DEBUG);
+                $handler->setFormatter(new \Monolog\Formatter\JsonFormatter());
+                $log->pushHandler($handler);
                 return $log;
             },
 
