@@ -75,19 +75,34 @@ class ActivationController
             }
 
             // Validação de segurança anti-compartilhamento:
-            // Se já houver um chrome_identity_id cadastrado e for diferente do enviado, bloqueia para evitar pirataria.
+            // Se já houver um chrome_identity_id cadastrado e for diferente do enviado:
             $savedChromeId = $customer->getChromeIdentityId();
             if (!empty($savedChromeId) && $savedChromeId !== $params['chrome_identity_id']) {
-                $this->logger->warning('Device conflict on license activation attempt', [
-                    'email' => $customer->getEmail(),
-                    'saved_chrome_id' => $savedChromeId,
-                    'attempted_chrome_id' => $params['chrome_identity_id']
-                ]);
-                $this->respondWithJson(200, [
-                    'status' => 'conflict',
-                    'message' => 'Esta licença já está ativada em outro perfil ou dispositivo do Chrome.'
-                ]);
-                return;
+                $forceReset = (bool)($_REQUEST['force'] ?? $input['force'] ?? false);
+
+                if ($forceReset) {
+                    // Transfere a licença para o novo perfil/dispositivo
+                    $customer->setChromeIdentityId($params['chrome_identity_id']);
+                    $customer->recordAudit('LICENSE_TRANSFERRED', "License transferred to new Chrome Identity: {$params['chrome_identity_id']}");
+                    $this->customerRepository->save($customer);
+                    
+                    $this->logger->info('License transferred to new chrome identity', [
+                        'email' => $customer->getEmail(),
+                        'new_chrome_identity_id' => $params['chrome_identity_id']
+                    ]);
+                } else {
+                    $this->logger->warning('Device conflict on license activation attempt', [
+                        'email' => $customer->getEmail(),
+                        'saved_chrome_id' => $savedChromeId,
+                        'attempted_chrome_id' => $params['chrome_identity_id']
+                    ]);
+                    $this->respondWithJson(200, [
+                        'status' => 'conflict',
+                        'message' => 'Esta licença já está ativada em outro perfil ou dispositivo do Chrome. Deseja transferir a ativação para este perfil?',
+                        'can_force' => true
+                    ]);
+                    return;
+                }
             }
 
             // Associa o chrome_identity_id enviado se ainda estiver vazio

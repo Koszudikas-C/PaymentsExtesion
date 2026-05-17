@@ -187,7 +187,45 @@ class ActivationControllerTest extends TestCase
 
         $response = json_decode($output, true);
         $this->assertEquals('conflict', $response['status']);
+        $this->assertTrue($response['can_force']);
         $this->assertStringContainsString('Esta licença já está ativada em outro perfil', $response['message']);
+    }
+
+    public function testHandleRequestActiveCustomerForceResetOverwritesChromeId()
+    {
+        $this->setRequestParams([
+            'chrome_identity_id' => 'chrome_another_device',
+            'email' => 'active@example.com',
+            'extension_id' => 'gpjjhlfkdaakcpllhfobnmdjnbgpefgc',
+            'license_key' => 'lic_key_abc',
+            'force' => true
+        ]);
+
+        $activeCustomer = new Customer('Active User', 'active@example.com', '5511999999999');
+        $activeCustomer->markAsPaid('pay_999');
+        $activeCustomer->assignLicense('lic_key_abc');
+        $activeCustomer->setChromeIdentityId('chrome_user_123'); // Already bound to another profile
+
+        $this->customerRepo->expects($this->once())
+            ->method('findByEmail')
+            ->with('active@example.com')
+            ->willReturn($activeCustomer);
+
+        $this->customerRepo->expects($this->once())
+            ->method('save')
+            ->with($this->callback(function (Customer $customer) {
+                return $customer->getChromeIdentityId() === 'chrome_another_device';
+            }));
+
+        $controller = new ActivationController($this->customerRepo, $this->logger);
+
+        ob_start();
+        $controller->handleRequest();
+        $output = ob_get_clean();
+
+        $response = json_decode($output, true);
+        $this->assertEquals('success', $response['status']);
+        $this->assertEquals('chrome_another_device', $activeCustomer->getChromeIdentityId());
     }
 
     public function testHandleRequestInactiveCustomerReturnsInactive()
