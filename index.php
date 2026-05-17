@@ -8,6 +8,7 @@ use Dotenv\Dotenv;
 use App\Config\Container;
 use App\Controllers\CheckoutController;
 use App\Controllers\WebhookController;
+use App\Controllers\ActivationController;
 use Bramus\Router\Router;
 
 // Carrega variáveis do ambiente (.env)
@@ -23,6 +24,12 @@ $container = Container::build();
 // Rota de Checkout Limpa: /checkout
 $router->match('GET|POST', '/checkout', function () use ($container) {
     $controller = $container->get(CheckoutController::class);
+    $controller->handleRequest();
+});
+
+// Rota de Ativação Limpa: /activate
+$router->match('GET|POST', '/activate', function () use ($container) {
+    $controller = $container->get(ActivationController::class);
     $controller->handleRequest();
 });
 

@@ -105,6 +105,8 @@ class Container
 
             \App\Controllers\WebhookController::class => \DI\autowire(),
 
+            \App\Controllers\ActivationController::class => \DI\autowire(),
+
             // Atalho para o sal
             'settings.license_salt' => function (ContainerInterface $c) {
                 return $c->get('settings')['license_salt'];
