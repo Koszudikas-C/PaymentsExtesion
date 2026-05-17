@@ -59,7 +59,7 @@ class WebhookHandlerTest extends TestCase
 
         $this->customerRepo->expects($this->once())
             ->method('findByEmail')
-            ->willReturn(null); // New customer
+            ->willReturn(null);
 
         $this->licenseService->expects($this->once())
             ->method('generateLicense')
@@ -73,8 +73,8 @@ class WebhookHandlerTest extends TestCase
         $this->customerRepo->expects($this->once())
             ->method('save')
             ->with($this->callback(function (Customer $customer) {
-                return $customer->getEmail() === 'user@example.com' && 
-                       $customer->isLicenseDelivered() === true;
+                return $customer->getEmail() === 'user@example.com' &&
+                    $customer->isLicenseDelivered() === true;
             }));
 
         $this->handler->handle($data);
@@ -99,5 +99,123 @@ class WebhookHandlerTest extends TestCase
             ->method('save');
 
         $this->handler->handle($data);
+    }
+
+    public function testHandlePaymentReceivedDatabaseFailureFallback()
+    {
+        $data = [
+            'event' => 'PAYMENT_RECEIVED',
+            'payment' => ['customer' => 'cus_123']
+        ];
+
+        $this->gateway->expects($this->once())
+            ->method('getCustomerInfo')
+            ->willReturn([
+                'email' => 'fallback-user@example.com',
+                'name' => 'Fallback User',
+                'mobilePhone' => '5511999999999'
+            ]);
+
+        $this->customerRepo->expects($this->once())
+            ->method('findByEmail')
+            ->willReturn(null);
+
+        $this->licenseService->expects($this->once())
+            ->method('generateLicense')
+            ->willReturn('XYZ-9876');
+
+        $this->emailService->expects($this->once())
+            ->method('sendLicenseEmail')
+            ->willReturn(true);
+
+        // Simulate database failure
+        $this->customerRepo->expects($this->once())
+            ->method('save')
+            ->willThrowException(new \RuntimeException("Database connection lost"));
+
+        // Expect critical log
+        $this->logger->expects($this->once())
+            ->method('critical')
+            ->with($this->stringContains('Database error persisting customer. Falling back to local file.'));
+
+        // Clean up fallback file if it already exists
+        $fallbackFile = __DIR__ . '/../../../logs/failed_licenses.json';
+        if (file_exists($fallbackFile)) {
+            unlink($fallbackFile);
+        }
+
+        $this->handler->handle($data);
+
+        // Assert fallback file exists and has correct data
+        $this->assertFileExists($fallbackFile);
+        $content = file_get_contents($fallbackFile);
+        $savedData = json_decode($content, true);
+
+        $this->assertCount(1, $savedData);
+        $record = $savedData[0];
+        $this->assertEquals('Fallback User', $record['name']);
+        $this->assertEquals('fallback-user@example.com', $record['email']);
+        $this->assertEquals('XYZ-9876', $record['licenseKey']);
+        $this->assertEquals('Database connection lost', $record['error']);
+
+        // Clean up after test
+        unlink($fallbackFile);
+    }
+
+    public function testHandlePaymentReceivedLookupFailureFallback()
+    {
+        $data = [
+            'event' => 'PAYMENT_RECEIVED',
+            'payment' => ['customer' => 'cus_123']
+        ];
+
+        $this->gateway->expects($this->once())
+            ->method('getCustomerInfo')
+            ->willReturn([
+                'email' => 'lookup-fail@example.com',
+                'name' => 'Lookup Fail User',
+                'mobilePhone' => '5511999999999'
+            ]);
+
+        // Simulate database lookup failure
+        $this->customerRepo->expects($this->once())
+            ->method('findByEmail')
+            ->willThrowException(new \RuntimeException("Connection timeout"));
+
+        $this->licenseService->expects($this->once())
+            ->method('generateLicense')
+            ->willReturn('OFFLINE-123');
+
+        $this->emailService->expects($this->once())
+            ->method('sendLicenseEmail')
+            ->willReturn(true);
+
+        // Expect offline log
+        $this->logger->expects($this->once())
+            ->method('error')
+            ->with($this->stringContains('Database offline during customer lookup. Using fallback flow.'));
+
+        // Clean up fallback file if it already exists
+        $fallbackFile = __DIR__ . '/../../../logs/failed_licenses.json';
+        if (file_exists($fallbackFile)) {
+            unlink($fallbackFile);
+        }
+
+        $this->handler->handle($data);
+
+        // Assert fallback file exists and has correct data
+        $this->assertFileExists($fallbackFile);
+        $content = file_get_contents($fallbackFile);
+        $savedData = json_decode($content, true);
+
+        $this->assertCount(1, $savedData);
+        $record = $savedData[0];
+        $this->assertEquals('Lookup Fail User', $record['name']);
+        $this->assertEquals('lookup-fail@example.com', $record['email']);
+        $this->assertEquals('OFFLINE-123', $record['licenseKey']);
+        $this->assertEquals('Lookup failed: Connection timeout', $record['error']);
+
+        // Clean up after test
+        unlink($fallbackFile);
     }
 }

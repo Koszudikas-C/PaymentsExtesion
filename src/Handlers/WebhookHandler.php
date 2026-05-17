@@ -58,7 +58,18 @@ class WebhookHandler
         $name = $customerInfo['name'] ?? 'Usuário';
         $whatsapp = $customerInfo['mobilePhone'] ?? $customerInfo['phone'] ?? 'unknown';
 
-        $customer = $this->customerRepository->findByEmail($email);
+        $customer = null;
+        $dbFailed = false;
+        $dbErrorMsg = '';
+
+        // 1. Tenta buscar cliente existente no banco
+        try {
+            $customer = $this->customerRepository->findByEmail($email);
+        } catch (\Throwable $e) {
+            $dbFailed = true;
+            $dbErrorMsg = 'Lookup failed: ' . $e->getMessage();
+            $this->logger->error('Database offline during customer lookup. Using fallback flow.', ['error' => $e->getMessage()]);
+        }
 
         if (!$customer) {
             $customer = new Customer($name, $email, $whatsapp);
@@ -67,23 +78,83 @@ class WebhookHandler
         $customer->markAsPaid($customerId);
         $customer->setSystemAccess();
         
+        // 2. Tenta gerar/atribuir licença
         if (!$customer->getLicenseKey()) {
             $generatedLicense = $this->licenseService->generateLicense($whatsapp, $this->licenseSalt);
             
-            $otherCustomer = $this->customerRepository->findByLicenseKey($generatedLicense);
-            
-            if ($otherCustomer && $otherCustomer->getEmail() !== $email) {
-                $this->logger->warning('Security Alert: WhatsApp reuse attempt');
-            } else {
+            $licenseAssigned = false;
+            if (!$dbFailed) {
+                try {
+                    $otherCustomer = $this->customerRepository->findByLicenseKey($generatedLicense);
+                    
+                    if ($otherCustomer && $otherCustomer->getEmail() !== $email) {
+                        $this->logger->warning('Security Alert: WhatsApp reuse attempt');
+                    } else {
+                        $customer->assignLicense($generatedLicense);
+                        $licenseAssigned = true;
+                    }
+                } catch (\Throwable $e) {
+                    $dbFailed = true;
+                    $dbErrorMsg = 'License lookup failed: ' . $e->getMessage();
+                    $this->logger->error('Database offline during license validation.', ['error' => $e->getMessage()]);
+                }
+            }
+
+            // Se o banco falhou ou não conseguimos validar, atribuímos a licença diretamente em memória para não travar o cliente
+            if (!$licenseAssigned) {
                 $customer->assignLicense($generatedLicense);
             }
         }
 
-        // 3. Tentativa de entrega
+        // 3. Tentativa de entrega por E-mail (Sempre roda, mesmo sem banco de dados!)
         $this->attemptLicenseDelivery($customer);
 
-        // 4. Persistência
-        $this->customerRepository->save($customer);
+        // 4. Persistência ou Fallback
+        if ($dbFailed) {
+            $this->saveToFallbackFile($customer, $dbErrorMsg);
+        } else {
+            try {
+                $this->customerRepository->save($customer);
+            } catch (\Throwable $e) {
+                $this->logger->critical('Database error persisting customer. Falling back to local file.', [
+                    'email' => $customer->getEmail(),
+                    'error' => $e->getMessage()
+                ]);
+                $this->saveToFallbackFile($customer, $e->getMessage());
+            }
+        }
+    }
+
+    private function saveToFallbackFile(Customer $customer, string $errorMessage): void
+    {
+        $fallbackDir = __DIR__ . '/../../logs';
+        if (!is_dir($fallbackDir)) {
+            mkdir($fallbackDir, 0777, true);
+        }
+
+        $fallbackFile = $fallbackDir . '/failed_licenses.json';
+        
+        $fallbackData = [
+            'timestamp' => date('c'),
+            'name' => $customer->getName(),
+            'email' => $customer->getEmail(),
+            'phone' => $customer->getPhone(),
+            'licenseKey' => $customer->getLicenseKey(),
+            'paymentStatus' => $customer->getPaymentStatus(),
+            'isLicenseDelivered' => $customer->isLicenseDelivered(),
+            'deliveryFailureCount' => $customer->getDeliveryFailureCount(),
+            'error' => $errorMessage
+        ];
+
+        $existing = [];
+        if (file_exists($fallbackFile)) {
+            $content = file_get_contents($fallbackFile);
+            $existing = json_decode($content, true) ?: [];
+        }
+
+        $existing[] = $fallbackData;
+
+        file_put_contents($fallbackFile, json_encode($existing, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
     }
 
     private function attemptLicenseDelivery(Customer $customer): void

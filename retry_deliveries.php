@@ -19,6 +19,69 @@ $logger = $container->get(Logger::class);
 
 $logger->info('Starting License Retry Task');
 
+// 1. Recover any failed database persistences from fallback file
+$fallbackFile = __DIR__ . '/logs/failed_licenses.json';
+if (file_exists($fallbackFile)) {
+    $logger->info('Found failed database persistence records. Attempting recovery.');
+    $content = file_get_contents($fallbackFile);
+    $records = json_decode($content, true) ?: [];
+    $remainingRecords = [];
+    $recoveredCount = 0;
+
+    foreach ($records as $record) {
+        try {
+            $email = $record['email'] ?? '';
+            if (empty($email)) {
+                $logger->warning('Skipping invalid fallback record (no email)', ['record' => $record]);
+                continue;
+            }
+
+            $customer = $customerRepository->findByEmail($email);
+            if (!$customer) {
+                $customer = new \App\Entity\Customer(
+                    $record['name'] ?? 'Usuário',
+                    $email,
+                    $record['phone'] ?? 'unknown'
+                );
+            }
+
+            if (($record['paymentStatus'] ?? '') === 'RECEIVED') {
+                $customer->markAsPaid('FALLBACK_RECOVERED');
+            }
+
+            if (isset($record['licenseKey'])) {
+                try {
+                    $customer->assignLicense($record['licenseKey']);
+                } catch (\DomainException $e) {
+                    // Already assigned, which is fine
+                }
+            }
+
+            if ($record['isLicenseDelivered'] ?? false) {
+                $customer->markLicenseAsDelivered();
+            }
+
+            $customerRepository->save($customer);
+            $logger->info('Recovered customer from fallback file', ['email' => $email]);
+            $recoveredCount++;
+        } catch (\Throwable $e) {
+            $logger->error('Failed to recover customer from fallback file', [
+                'email' => $record['email'] ?? 'unknown',
+                'error' => $e->getMessage()
+            ]);
+            $remainingRecords[] = $record;
+        }
+    }
+
+    if (empty($remainingRecords)) {
+        unlink($fallbackFile);
+        $logger->info('All fallback records recovered successfully. File deleted.');
+    } else {
+        file_put_contents($fallbackFile, json_encode($remainingRecords, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        $logger->warning('Some fallback records could not be recovered. Kept in file.', ['remaining' => count($remainingRecords)]);
+    }
+}
+
 $pendingCustomers = $customerRepository->findPendingDeliveries();
 
 $successCount = 0;
