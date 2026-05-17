@@ -77,6 +77,38 @@ class WebhookHandler
 
         if (!$customer) {
             $customer = new Customer($name, $email, $whatsapp);
+        } else {
+            if ($customer->getPaymentStatus() === 'RECEIVED') {
+                if ($customer->getPlan() === 'LIFETIME') {
+                    // Pagamento duplo vitalício -> registra para reembolso
+                    $this->logDoublePayment($customer, $customerId, $payment);
+                    $customer->recordAudit('DOUBLE_PAYMENT_DETECTED', "Double payment received for payment ID: $customerId. Added to refund queue.");
+                    if (!$dbFailed) {
+                        $this->customerRepository->save($customer);
+                    }
+                    return;
+                } elseif ($customer->getPlan() === 'MONTHLY') {
+                    // Extensão mensal com backup para revocabilidade
+                    $prevExpires = $customer->getLicenseExpiresAt();
+                    $prevExpiresStr = $prevExpires ? $prevExpires->format('Y-m-d H:i:s') : 'never';
+                    
+                    $newExpires = $prevExpires ? clone $prevExpires : new \DateTime('now');
+                    $newExpires->modify('+30 days');
+                    $customer->setLicenseExpiresAt($newExpires);
+                    
+                    $customer->recordAudit('PLAN_EXTENDED', "Monthly subscription extended. Previous expiration: $prevExpiresStr. New expiration: " . $newExpires->format('Y-m-d H:i:s'));
+                    $this->logger->info('Monthly subscription extended for customer', [
+                        'email' => $email,
+                        'prevExpiration' => $prevExpiresStr,
+                        'newExpiration' => $newExpires->format('Y-m-d H:i:s')
+                    ]);
+                    
+                    if (!$dbFailed) {
+                        $this->customerRepository->save($customer);
+                    }
+                    return;
+                }
+            }
         }
 
         $customer->markAsPaid($customerId);
@@ -184,7 +216,7 @@ class WebhookHandler
 
         $existing[] = $fallbackData;
 
-        file_put_contents($fallbackFile, json_encode($existing, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        file_put_contents($fallbackFile, json_encode($existing, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
     }
 
     private function attemptLicenseDelivery(Customer $customer): void
@@ -201,5 +233,37 @@ class WebhookHandler
             $customer->recordDeliveryFailure('SMTP Error - check logs');
             $this->logger->error('Delivery Failed', ['email' => $customer->getEmail()]);
         }
+    }
+
+    private function logDoublePayment(Customer $customer, string $paymentId, array $paymentData): void
+    {
+        $logFile = __DIR__ . '/../../logs/double_payments.json';
+        $dir = dirname($logFile);
+        if (!is_dir($dir)) {
+            mkdir($dir, 0777, true);
+        }
+
+        $records = [];
+        if (file_exists($logFile)) {
+            $records = json_decode(file_get_contents($logFile), true) ?: [];
+        }
+
+        $records[] = [
+            'email' => $customer->getEmail(),
+            'name' => $customer->getName(),
+            'whatsapp' => $customer->getPhone(),
+            'paymentId' => $paymentId,
+            'plan' => $customer->getPlan(),
+            'timestamp' => (new \DateTime('now'))->format('Y-m-d H:i:s'),
+            'action' => 'REFUND_REQUIRED',
+            'details' => $paymentData
+        ];
+
+        file_put_contents($logFile, json_encode($records, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+        
+        $this->logger->warning('Double payment detected for Lifetime user. Logged for refund.', [
+            'email' => $customer->getEmail(),
+            'paymentId' => $paymentId
+        ]);
     }
 }

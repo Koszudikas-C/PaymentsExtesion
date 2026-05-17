@@ -43,6 +43,9 @@ class Customer extends BaseEntity
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?\DateTime $licenseExpiresAt = null;
 
+    #[ORM\Column(length: 255, unique: true, nullable: true)]
+    private ?string $chromeIdentityId = null;
+
     #[ORM\OneToMany(mappedBy: 'customer', targetEntity: AuditLog::class, cascade: ['persist', 'remove'])]
     private Collection $auditLogs;
 
@@ -95,7 +98,7 @@ class Customer extends BaseEntity
         return !$this->isLicenseDelivered && $this->deliveryFailureCount < 10;
     }
 
-    private function recordAudit(string $action, string $details): void
+    public function recordAudit(string $action, string $details): void
     {
         $this->auditLogs->add(new AuditLog($this, $action, $details));
     }
@@ -130,6 +133,9 @@ class Customer extends BaseEntity
 
     public function getLicenseExpiresAt(): ?\DateTime { return $this->licenseExpiresAt; }
     public function setLicenseExpiresAt(?\DateTime $licenseExpiresAt): void { $this->licenseExpiresAt = $licenseExpiresAt; }
+
+    public function getChromeIdentityId(): ?string { return $this->chromeIdentityId; }
+    public function setChromeIdentityId(?string $chromeIdentityId): void { $this->chromeIdentityId = $chromeIdentityId; }
 
     public function isLicenseActive(): bool
     {

@@ -13,6 +13,11 @@ class CustomerRepository extends EntityRepository implements CustomerRepositoryI
         return $this->findOneBy(['email' => $email]);
     }
 
+    public function findByChromeIdentityId(string $chromeIdentityId): ?Customer
+    {
+        return $this->findOneBy(['chromeIdentityId' => $chromeIdentityId]);
+    }
+
     public function findByLicenseKey(string $licenseKey): ?Customer
     {
         return $this->findOneBy(['licenseKey' => $licenseKey]);

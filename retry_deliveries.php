@@ -87,7 +87,7 @@ if (file_exists($fallbackFile)) {
         unlink($fallbackFile);
         $logger->info('All fallback records recovered successfully. File deleted.');
     } else {
-        file_put_contents($fallbackFile, json_encode($remainingRecords, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        file_put_contents($fallbackFile, json_encode($remainingRecords, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
         $logger->warning('Some fallback records could not be recovered. Kept in file.', ['remaining' => count($remainingRecords)]);
     }
 }

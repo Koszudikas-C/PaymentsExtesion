@@ -29,6 +29,7 @@
         <env name="DB_NAME" value=":memory:"/>
         <env name="LICENSE_SALT" value="test_salt"/>
         <env name="BASE_URL_ASAAS" value="https://sandbox.asaas.com/api/v3"/>
+        <env name="ASAAS_PAYMENT_LINK" value="https://cobranca.asaas.com/c/"/>
         <env name="ASAAS_ACCESS_TOKEN" value="test_token"/>
         <env name="NAME_APP" value="TestApp"/>
         <env name="MAIL_SMTP_HOST" value="localhost"/>

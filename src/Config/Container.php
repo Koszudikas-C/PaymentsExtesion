@@ -100,6 +100,11 @@ class Container
             WebhookHandler::class => \DI\autowire()
                 ->constructorParameter('licenseSalt', \DI\get('settings.license_salt')),
 
+            \App\Controllers\CheckoutController::class => \DI\autowire()
+                ->constructorParameter('settings', \DI\get('settings')),
+
+            \App\Controllers\WebhookController::class => \DI\autowire(),
+
             // Atalho para o sal
             'settings.license_salt' => function (ContainerInterface $c) {
                 return $c->get('settings')['license_salt'];

@@ -24,7 +24,8 @@
         "doctrine/orm": "^3.6",
         "symfony/cache": "7.4",
         "symfony/var-exporter": "7.4",
-        "doctrine/migrations": "^3.9"
+        "doctrine/migrations": "^3.9",
+        "bramus/router": "^1.6"
     },
     "require-dev": {
         "phpunit/phpunit": "^13.1"

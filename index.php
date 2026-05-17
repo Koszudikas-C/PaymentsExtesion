@@ -1,94 +1,56 @@
 <?php
 
+declare(strict_types=1);
+
 require __DIR__ . '/vendor/autoload.php';
 
 use Dotenv\Dotenv;
 use App\Config\Container;
-use App\Handlers\WebhookHandler;
-use Monolog\Logger;
+use App\Controllers\CheckoutController;
+use App\Controllers\WebhookController;
+use Bramus\Router\Router;
 
+// Carrega variáveis do ambiente (.env)
 $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
+// Instancia o roteador robusto
+$router = new Router();
+
+// Constrói o container PHP-DI
 $container = Container::build();
 
-$log = $container->get(Logger::class);
+// Rota de Checkout Limpa: /checkout
+$router->match('GET|POST', '/checkout', function () use ($container) {
+    $controller = $container->get(CheckoutController::class);
+    $controller->handleRequest();
+});
 
-$headers = array_change_key_case(getallheaders(), CASE_LOWER);
-$asaasToken = $headers['asaas-access-token'] ?? '';
+// Rota de Webhook Limpa: /webhook
+$router->post('/webhook', function () use ($container) {
+    $controller = $container->get(WebhookController::class);
+    $controller->handleRequest();
+});
 
-if ($asaasToken !== $_ENV['ASAAS_TOKEN']) {
-    $log->warning('Invalid Token', ['received' => $asaasToken]);
-    $log->warning('Headers', $headers);
-    http_response_code(401);
-    exit;
-}
+// Trata requisições OPTIONS globais para CORS
+$router->options('/.*', function () {
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type, X-Requested-With, Asaas-Access-Token');
+    header_remove('X-Powered-By');
+    exit(0);
+});
 
-try {
-    $input = file_get_contents('php://input');
-    $data = json_decode($input, true);
+// Rota Fallback 404
+$router->set404(function () {
+    header('Content-Type: application/json; charset=utf-8');
+    header_remove('X-Powered-By');
+    http_response_code(404);
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'Endpoint não encontrado.'
+    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+});
 
-    if (!$data) {
-        $log->error('Empty Payload');
-        http_response_code(400);
-        exit;
-    }
-
-    // 6. Resolve o Handler via Container (Injeção Automática)
-    /** @var WebhookHandler $handler */
-    $handler = $container->get(WebhookHandler::class);
-
-    $handler->handle($data);
-
-    http_response_code(200);
-    echo json_encode(["status" => "success"]);
-} catch (\Throwable $e) {
-    $log->critical('Unhandled Exception during webhook capture', [
-        'msg' => $e->getMessage(),
-        'trace' => $e->getTraceAsString()
-    ]);
-
-    // FALLBACK: Se o evento era PAYMENT_RECEIVED, salva o payload bruto em um arquivo
-    $isPaymentReceived = false;
-    $payloadToSave = $input ?? '';
-    
-    if (isset($data) && is_array($data) && isset($data['event']) && $data['event'] === 'PAYMENT_RECEIVED') {
-        $isPaymentReceived = true;
-    } elseif (isset($payloadToSave) && strpos($payloadToSave, 'PAYMENT_RECEIVED') !== false) {
-        $isPaymentReceived = true;
-    }
-
-    if ($isPaymentReceived) {
-        try {
-            $fallbackDir = __DIR__ . '/logs';
-            if (!is_dir($fallbackDir)) {
-                mkdir($fallbackDir, 0777, true);
-            }
-            
-            $fallbackFile = $fallbackDir . '/failed_webhooks.json';
-            
-            $failedRecord = [
-                'timestamp' => date('c'),
-                'error' => $e->getMessage(),
-                'payload' => is_array($data) ? $data : (json_decode($payloadToSave, true) ?: $payloadToSave)
-            ];
-
-            $existing = [];
-            if (file_exists($fallbackFile)) {
-                $existingContent = file_get_contents($fallbackFile);
-                $existing = json_decode($existingContent, true) ?: [];
-            }
-
-            $existing[] = $failedRecord;
-            file_put_contents($fallbackFile, json_encode($existing, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-            
-            $log->info('Saved failed PAYMENT_RECEIVED webhook payload to fallback file', ['file' => $fallbackFile]);
-        } catch (\Throwable $fallbackEx) {
-            $log->emergency('Failed to save webhook payload to fallback file', [
-                'error' => $fallbackEx->getMessage()
-            ]);
-        }
-    }
-
-    http_response_code(500);
-}
+// Executa o roteamento
+$router->run();

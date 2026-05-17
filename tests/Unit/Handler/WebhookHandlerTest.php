@@ -254,7 +254,6 @@ class WebhookHandlerTest extends TestCase
             ->method('sendLicenseEmail')
             ->willReturn(true);
 
-        /** @var \App\Entity\Customer $savedCustomer */
         $savedCustomer = null;
         $this->customerRepo->expects($this->once())
             ->method('save')
@@ -339,5 +338,101 @@ class WebhookHandlerTest extends TestCase
             ->method('info');
 
         $handler->handle($data);
+    }
+
+    public function testHandlePaymentReceivedDoublePaymentLifetimeRefundQueue()
+    {
+        $data = [
+            'event' => 'PAYMENT_RECEIVED',
+            'payment' => [
+                'id' => 'pay_double_123',
+                'customer' => 'cus_123'
+            ]
+        ];
+
+        $existingCustomer = new Customer('Lifetime User', 'lifetime@example.com', '5511999999999');
+        $existingCustomer->markAsPaid('pay_initial_123');
+        $existingCustomer->setPlan('LIFETIME');
+
+        // Mock gateway customer info lookup
+        $this->gateway->expects($this->once())
+            ->method('getCustomerInfo')
+            ->with('cus_123', $this->logger)
+            ->willReturn([
+                'email' => 'lifetime@example.com',
+                'name' => 'Lifetime User',
+                'mobilePhone' => '5511999999999'
+            ]);
+
+        // Pre-configure mock repo to return this customer
+        $this->customerRepo->expects($this->once())
+            ->method('findByEmail')
+            ->with('lifetime@example.com')
+            ->willReturn($existingCustomer);
+
+        // Ensure we save the customer with the new audit log entry
+        $this->customerRepo->expects($this->once())
+            ->method('save')
+            ->with($existingCustomer);
+
+        $this->logger->expects($this->once())
+            ->method('warning')
+            ->with('Double payment detected for Lifetime user. Logged for refund.');
+
+        $this->handler->handle($data);
+
+        // Verify audit log has the double payment event
+        $audits = $existingCustomer->getAuditLogs();
+        $this->assertCount(3, $audits); // 1. CUSTOMER_CREATED, 2. PAYMENT_RECEIVED, 3. DOUBLE_PAYMENT_DETECTED
+        $this->assertEquals('DOUBLE_PAYMENT_DETECTED', $audits->last()->getAction());
+    }
+
+    public function testHandlePaymentReceivedMonthlyExtension()
+    {
+        $data = [
+            'event' => 'PAYMENT_RECEIVED',
+            'payment' => [
+                'id' => 'pay_renew_123',
+                'customer' => 'cus_123'
+            ]
+        ];
+
+        $existingCustomer = new Customer('Monthly User', 'monthly@example.com', '5511999999999');
+        $existingCustomer->markAsPaid('pay_initial_123');
+        $existingCustomer->setPlan('MONTHLY');
+
+        $initialExpiration = new \DateTime('2026-06-01 12:00:00');
+        $existingCustomer->setLicenseExpiresAt($initialExpiration);
+
+        $this->gateway->expects($this->once())
+            ->method('getCustomerInfo')
+            ->with('cus_123', $this->logger)
+            ->willReturn([
+                'email' => 'monthly@example.com',
+                'name' => 'Monthly User',
+                'mobilePhone' => '5511999999999'
+            ]);
+
+        $this->customerRepo->expects($this->once())
+            ->method('findByEmail')
+            ->with('monthly@example.com')
+            ->willReturn($existingCustomer);
+
+        $this->customerRepo->expects($this->once())
+            ->method('save')
+            ->with($existingCustomer);
+
+        $this->logger->expects($this->once())
+            ->method('info')
+            ->with('Monthly subscription extended for customer');
+
+        $this->handler->handle($data);
+
+        // Verify extended expiration date (2026-06-01 + 30 days = 2026-07-01)
+        $this->assertEquals('2026-07-01 12:00:00', $existingCustomer->getLicenseExpiresAt()->format('Y-m-d H:i:s'));
+
+        // Verify audit log has PLAN_EXTENDED
+        $audits = $existingCustomer->getAuditLogs();
+        $this->assertEquals('PLAN_EXTENDED', $audits->last()->getAction());
     }
 }

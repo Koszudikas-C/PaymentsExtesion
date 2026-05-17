@@ -7,6 +7,7 @@ use App\Entity\Customer;
 interface CustomerRepositoryInterface
 {
     public function findByEmail(string $email): ?Customer;
+    public function findByChromeIdentityId(string $chromeIdentityId): ?Customer;
     public function findByLicenseKey(string $licenseKey): ?Customer;
     public function findPendingDeliveries(): array;
     public function countPaidLifetimeCustomers(): int;
