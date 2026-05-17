@@ -26,6 +26,15 @@ class CustomerRepository extends EntityRepository implements CustomerRepositoryI
         ]);
     }
 
+    public function countPaidLifetimeCustomers(): int
+    {
+        return (int) $this->getEntityManager()
+            ->createQuery('SELECT COUNT(c.id) FROM App\Entity\Customer c WHERE c.paymentStatus = :status AND c.plan = :plan')
+            ->setParameter('status', 'RECEIVED')
+            ->setParameter('plan', 'LIFETIME')
+            ->getSingleScalarResult();
+    }
+
     public function save(Customer $customer): void
     {
         $this->getEntityManager()->persist($customer);

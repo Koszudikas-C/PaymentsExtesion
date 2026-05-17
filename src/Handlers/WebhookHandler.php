@@ -5,6 +5,7 @@ namespace App\Handlers;
 use App\Interfaces\PaymentGatewayInterface;
 use App\Interfaces\EmailServiceInterface;
 use App\Interfaces\LicenseServiceInterface;
+use App\Interfaces\PromotionServiceInterface;
 use App\Interfaces\Repositories\CustomerRepositoryInterface;
 use App\Interfaces\Repositories\AuditLogRepositoryInterface;
 use App\Entity\Customer;
@@ -19,6 +20,7 @@ class WebhookHandler
     private AuditLogRepositoryInterface $auditLogRepository;
     private Logger $logger;
     private string $licenseSalt;
+    private PromotionServiceInterface $promotionService;
 
     public function __construct(
         PaymentGatewayInterface $paymentGateway,
@@ -27,7 +29,8 @@ class WebhookHandler
         CustomerRepositoryInterface $customerRepository,
         AuditLogRepositoryInterface $auditLogRepository,
         Logger $logger,
-        string $licenseSalt
+        string $licenseSalt,
+        PromotionServiceInterface $promotionService
     ) {
         $this->paymentGateway = $paymentGateway;
         $this->emailService = $emailService;
@@ -36,6 +39,7 @@ class WebhookHandler
         $this->auditLogRepository = $auditLogRepository;
         $this->logger = $logger;
         $this->licenseSalt = $licenseSalt;
+        $this->promotionService = $promotionService;
     }
 
     public function handle(array $data): void
@@ -78,6 +82,26 @@ class WebhookHandler
         $customer->markAsPaid($customerId);
         $customer->setSystemAccess();
         
+        // Define o plano (Mensal ou Vitalício) com base no pagamento do Asaas
+        $subscriptionId = $payment['subscription'] ?? null;
+        if ($subscriptionId) {
+            $customer->setPlan('MONTHLY');
+            $customer->setSubscriptionId($subscriptionId);
+            
+            $dueDateStr = $payment['dueDate'] ?? null;
+            if ($dueDateStr) {
+                $dueDate = new \DateTime($dueDateStr);
+                $dueDate->modify('+3 days'); // tolerância
+                $customer->setLicenseExpiresAt($dueDate);
+            } else {
+                $customer->setLicenseExpiresAt((new \DateTime('now'))->modify('+33 days'));
+            }
+        } else {
+            $customer->setPlan('LIFETIME');
+            $customer->setSubscriptionId(null);
+            $customer->setLicenseExpiresAt(null);
+        }
+        
         // 2. Tenta gerar/atribuir licença
         if (!$customer->getLicenseKey()) {
             $generatedLicense = $this->licenseService->generateLicense($whatsapp, $this->licenseSalt);
@@ -115,6 +139,9 @@ class WebhookHandler
         } else {
             try {
                 $this->customerRepository->save($customer);
+
+                // VERIFICAÇÃO AUTOMÁTICA DE META DE LANÇAMENTO
+                $this->promotionService->handlePromotionGoal($customer, $this->logger);
             } catch (\Throwable $e) {
                 $this->logger->critical('Database error persisting customer. Falling back to local file.', [
                     'email' => $customer->getEmail(),
@@ -143,6 +170,9 @@ class WebhookHandler
             'paymentStatus' => $customer->getPaymentStatus(),
             'isLicenseDelivered' => $customer->isLicenseDelivered(),
             'deliveryFailureCount' => $customer->getDeliveryFailureCount(),
+            'plan' => $customer->getPlan(),
+            'subscriptionId' => $customer->getSubscriptionId(),
+            'licenseExpiresAt' => $customer->getLicenseExpiresAt() ? $customer->getLicenseExpiresAt()->format('c') : null,
             'error' => $errorMessage
         ];
 

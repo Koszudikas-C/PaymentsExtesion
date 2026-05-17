@@ -61,6 +61,16 @@ if (file_exists($fallbackFile)) {
                 $customer->markLicenseAsDelivered();
             }
 
+            if (isset($record['plan'])) {
+                $customer->setPlan($record['plan']);
+            }
+            if (isset($record['subscriptionId'])) {
+                $customer->setSubscriptionId($record['subscriptionId']);
+            }
+            if (isset($record['licenseExpiresAt']) && $record['licenseExpiresAt'] !== null) {
+                $customer->setLicenseExpiresAt(new \DateTime($record['licenseExpiresAt']));
+            }
+
             $customerRepository->save($customer);
             $logger->info('Recovered customer from fallback file', ['email' => $email]);
             $recoveredCount++;

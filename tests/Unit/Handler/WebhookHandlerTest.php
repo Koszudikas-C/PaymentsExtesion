@@ -6,6 +6,7 @@ use App\Handlers\WebhookHandler;
 use App\Interfaces\PaymentGatewayInterface;
 use App\Interfaces\EmailServiceInterface;
 use App\Interfaces\LicenseServiceInterface;
+use App\Interfaces\PromotionServiceInterface;
 use App\Interfaces\Repositories\CustomerRepositoryInterface;
 use App\Interfaces\Repositories\AuditLogRepositoryInterface;
 use App\Entity\Customer;
@@ -20,6 +21,7 @@ class WebhookHandlerTest extends TestCase
     private CustomerRepositoryInterface|\PHPUnit\Framework\MockObject\MockObject $customerRepo;
     private AuditLogRepositoryInterface|\PHPUnit\Framework\MockObject\MockObject $auditRepo;
     private Logger|\PHPUnit\Framework\MockObject\MockObject $logger;
+    private PromotionServiceInterface|\PHPUnit\Framework\MockObject\MockObject $promotionService;
     private WebhookHandler $handler;
 
     protected function setUp(): void
@@ -30,6 +32,7 @@ class WebhookHandlerTest extends TestCase
         $this->customerRepo = $this->createMock(CustomerRepositoryInterface::class);
         $this->auditRepo = $this->createMock(AuditLogRepositoryInterface::class);
         $this->logger = $this->createMock(Logger::class);
+        $this->promotionService = $this->createMock(PromotionServiceInterface::class);
 
         $this->handler = new WebhookHandler(
             $this->gateway,
@@ -38,7 +41,8 @@ class WebhookHandlerTest extends TestCase
             $this->customerRepo,
             $this->auditRepo,
             $this->logger,
-            'test-salt'
+            'test-salt',
+            $this->promotionService
         );
     }
 
@@ -217,5 +221,123 @@ class WebhookHandlerTest extends TestCase
 
         // Clean up after test
         unlink($fallbackFile);
+    }
+
+    public function testHandlePaymentReceivedSubscriptionMonthly()
+    {
+        $data = [
+            'event' => 'PAYMENT_RECEIVED',
+            'payment' => [
+                'customer' => 'cus_123',
+                'subscription' => 'sub_987654',
+                'dueDate' => '2026-06-16'
+            ]
+        ];
+
+        $this->gateway->expects($this->once())
+            ->method('getCustomerInfo')
+            ->willReturn([
+                'email' => 'subscriber@example.com',
+                'name' => 'Monthly Subscriber',
+                'mobilePhone' => '5511999999999'
+            ]);
+
+        $this->customerRepo->expects($this->once())
+            ->method('findByEmail')
+            ->willReturn(null);
+
+        $this->licenseService->expects($this->once())
+            ->method('generateLicense')
+            ->willReturn('SUB-1010');
+
+        $this->emailService->expects($this->once())
+            ->method('sendLicenseEmail')
+            ->willReturn(true);
+
+        /** @var \App\Entity\Customer $savedCustomer */
+        $savedCustomer = null;
+        $this->customerRepo->expects($this->once())
+            ->method('save')
+            ->with($this->callback(function ($customer) use (&$savedCustomer) {
+                $savedCustomer = $customer;
+                return true;
+            }));
+
+        $this->handler->handle($data);
+
+        $this->assertInstanceOf(\App\Entity\Customer::class, $savedCustomer);
+        $this->assertEquals('MONTHLY', $savedCustomer->getPlan());
+        $this->assertEquals('sub_987654', $savedCustomer->getSubscriptionId());
+        $this->assertNotNull($savedCustomer->getLicenseExpiresAt());
+        // 2026-06-16 + 3 days = 2026-06-19
+        $this->assertEquals('2026-06-19', $savedCustomer->getLicenseExpiresAt()->format('Y-m-d'));
+        $this->assertTrue($savedCustomer->isLicenseActive());
+    }
+
+    public function testHandlePaymentReceivedReachesGoalTriggersAsaasLinkConversion()
+    {
+        $data = [
+            'event' => 'PAYMENT_RECEIVED',
+            'payment' => ['customer' => 'cus_123']
+        ];
+
+        $promotionService = new \App\Services\PromotionService(
+            $this->customerRepo,
+            $this->gateway,
+            'lnk_test_goal',
+            19.90,
+            'AIFreelas - Assinatura Mensal'
+        );
+
+        // Instantiate handler with promotionService
+        $handler = new WebhookHandler(
+            $this->gateway,
+            $this->emailService,
+            $this->licenseService,
+            $this->customerRepo,
+            $this->auditRepo,
+            $this->logger,
+            'test-salt',
+            $promotionService
+        );
+
+        $this->gateway->expects($this->once())
+            ->method('getCustomerInfo')
+            ->willReturn([
+                'email' => 'goal@example.com',
+                'name' => 'Goal User',
+                'mobilePhone' => '5511999999999'
+            ]);
+
+        $this->customerRepo->expects($this->once())
+            ->method('findByEmail')
+            ->willReturn(null);
+
+        $this->licenseService->expects($this->once())
+            ->method('generateLicense')
+            ->willReturn('GOAL-100');
+
+        $this->emailService->expects($this->once())
+            ->method('sendLicenseEmail')
+            ->willReturn(true);
+
+        $this->customerRepo->expects($this->once())
+            ->method('save');
+
+        // Expect countPaidLifetimeCustomers to return 100
+        $this->customerRepo->expects($this->once())
+            ->method('countPaidLifetimeCustomers')
+            ->willReturn(100);
+
+        // Expect updatePaymentLinkToMonthly to be called with correct arguments
+        $this->gateway->expects($this->once())
+            ->method('updatePaymentLinkToMonthly')
+            ->with('lnk_test_goal', 19.90, 'AIFreelas - Assinatura Mensal', $this->logger)
+            ->willReturn(true);
+
+        $this->logger->expects($this->exactly(3))
+            ->method('info');
+
+        $handler->handle($data);
     }
 }

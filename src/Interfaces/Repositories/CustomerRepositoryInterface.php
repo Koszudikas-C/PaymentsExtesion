@@ -9,5 +9,6 @@ interface CustomerRepositoryInterface
     public function findByEmail(string $email): ?Customer;
     public function findByLicenseKey(string $licenseKey): ?Customer;
     public function findPendingDeliveries(): array;
+    public function countPaidLifetimeCustomers(): int;
     public function save(Customer $customer): void;
 }

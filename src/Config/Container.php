@@ -28,6 +28,9 @@ class Container
                     'url' => $_ENV['BASE_URL_ASAAS'],
                     'token' => $_ENV['ASAAS_ACCESS_TOKEN'],
                     'app_name' => $_ENV['NAME_APP'],
+                    'payment_link_id' => $_ENV['ASAAS_PAYMENT_LINK_ID'] ?? '',
+                    'monthly_value' => (float) ($_ENV['MONTHLY_VALUE'] ?? 19.90),
+                    'monthly_name' => $_ENV['MONTHLY_NAME'] ?? 'AIFreelas - Assinatura Mensal',
                 ],
                 'mail' => [
                     'host' => $_ENV['MAIL_SMTP_HOST'],
@@ -89,12 +92,26 @@ class Container
                 return $c->get(\Doctrine\ORM\EntityManagerInterface::class)->getRepository(\App\Entity\AuditLog::class);
             },
 
+            \App\Interfaces\PromotionServiceInterface::class => \DI\autowire(\App\Services\PromotionService::class)
+                ->constructorParameter('paymentLinkId', \DI\get('settings.asaas.payment_link_id'))
+                ->constructorParameter('monthlyValue', \DI\get('settings.asaas.monthly_value'))
+                ->constructorParameter('monthlyName', \DI\get('settings.asaas.monthly_name')),
+
             WebhookHandler::class => \DI\autowire()
                 ->constructorParameter('licenseSalt', \DI\get('settings.license_salt')),
 
             // Atalho para o sal
             'settings.license_salt' => function (ContainerInterface $c) {
                 return $c->get('settings')['license_salt'];
+            },
+            'settings.asaas.payment_link_id' => function (ContainerInterface $c) {
+                return $c->get('settings')['asaas']['payment_link_id'];
+            },
+            'settings.asaas.monthly_value' => function (ContainerInterface $c) {
+                return $c->get('settings')['asaas']['monthly_value'];
+            },
+            'settings.asaas.monthly_name' => function (ContainerInterface $c) {
+                return $c->get('settings')['asaas']['monthly_name'];
             },
         ];
 

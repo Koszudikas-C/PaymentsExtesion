@@ -34,6 +34,15 @@ class Customer extends BaseEntity
     #[ORM\Column(type: 'integer')]
     private int $deliveryFailureCount = 0;
 
+    #[ORM\Column(length: 20)]
+    private string $plan = 'LIFETIME';
+
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $subscriptionId = null;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTime $licenseExpiresAt = null;
+
     #[ORM\OneToMany(mappedBy: 'customer', targetEntity: AuditLog::class, cascade: ['persist', 'remove'])]
     private Collection $auditLogs;
 
@@ -112,6 +121,26 @@ class Customer extends BaseEntity
     public function getPaymentStatus(): string { return $this->paymentStatus; }
     public function isLicenseDelivered(): bool { return $this->isLicenseDelivered; }
     public function getDeliveryFailureCount(): int { return $this->deliveryFailureCount; }
+
+    public function getPlan(): string { return $this->plan; }
+    public function setPlan(string $plan): void { $this->plan = $plan; }
+
+    public function getSubscriptionId(): ?string { return $this->subscriptionId; }
+    public function setSubscriptionId(?string $subscriptionId): void { $this->subscriptionId = $subscriptionId; }
+
+    public function getLicenseExpiresAt(): ?\DateTime { return $this->licenseExpiresAt; }
+    public function setLicenseExpiresAt(?\DateTime $licenseExpiresAt): void { $this->licenseExpiresAt = $licenseExpiresAt; }
+
+    public function isLicenseActive(): bool
+    {
+        if ($this->plan === 'LIFETIME') {
+            return true;
+        }
+        if ($this->licenseExpiresAt === null) {
+            return false;
+        }
+        return $this->licenseExpiresAt > new \DateTime('now');
+    }
 
     #[ORM\PreUpdate]
     public function onPreUpdate(): void { $this->dateUpdated = new \DateTime('now'); }
