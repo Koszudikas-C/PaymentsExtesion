@@ -33,8 +33,8 @@ class ActivationController
         try {
             $params = $this->captureAndSanitizeInputs();
 
-            if (!$this->validateParams($params['chrome_identity_id'], $params['email'], $params['extension_id'])) {
-                $this->respondWithError(400, 'Parâmetros chrome_identity_id, email e extension_id são obrigatórios.');
+            if (!$this->validateParams($params['chrome_identity_id'], $params['email'], $params['extension_id'], $params['license_key'])) {
+                $this->respondWithError(400, 'Parâmetros chrome_identity_id, email, extension_id e license_key são obrigatórios.');
                 return;
             }
 
@@ -44,36 +44,68 @@ class ActivationController
                 return;
             }
 
-            $customer = $this->findCustomer($params['chrome_identity_id'], $params['email']);
+            // Busca o cliente pelo email fornecido
+            $customer = $this->customerRepository->findByEmail($params['email']);
 
             if (!$customer) {
                 $this->respondWithJson(200, [
                     'status' => 'not_found',
-                    'message' => 'Nenhum cadastro ou licença ativa encontrada para este usuário.'
+                    'message' => 'Nenhum cadastro encontrado para o email fornecido.'
                 ]);
                 return;
             }
 
-            // Garante que o chrome_identity_id esteja associado se estiver vazio
-            if (empty($customer->getChromeIdentityId())) {
+            // Verifica se a chave de licença enviada bate com a salva no banco de dados
+            $savedLicenseKey = $customer->getLicenseKey();
+            if (empty($savedLicenseKey) || $params['license_key'] !== $savedLicenseKey) {
+                $this->respondWithJson(200, [
+                    'status' => 'invalid_key',
+                    'message' => 'Chave de licença inválida para o email fornecido.'
+                ]);
+                return;
+            }
+
+            // Verifica se o pagamento foi recebido e a licença está ativa
+            if ($customer->getPaymentStatus() !== 'RECEIVED' || !$customer->isLicenseActive()) {
+                $this->respondWithJson(200, [
+                    'status' => 'inactive',
+                    'message' => 'A sua licença está inativa ou expirada. Efetue o pagamento para ativar.'
+                ]);
+                return;
+            }
+
+            // Validação de segurança anti-compartilhamento:
+            // Se já houver um chrome_identity_id cadastrado e for diferente do enviado, bloqueia para evitar pirataria.
+            $savedChromeId = $customer->getChromeIdentityId();
+            if (!empty($savedChromeId) && $savedChromeId !== $params['chrome_identity_id']) {
+                $this->logger->warning('Device conflict on license activation attempt', [
+                    'email' => $customer->getEmail(),
+                    'saved_chrome_id' => $savedChromeId,
+                    'attempted_chrome_id' => $params['chrome_identity_id']
+                ]);
+                $this->respondWithJson(200, [
+                    'status' => 'conflict',
+                    'message' => 'Esta licença já está ativada em outro perfil ou dispositivo do Chrome.'
+                ]);
+                return;
+            }
+
+            // Associa o chrome_identity_id enviado se ainda estiver vazio
+            if (empty($savedChromeId)) {
                 $customer->setChromeIdentityId($params['chrome_identity_id']);
                 $this->customerRepository->save($customer);
-            }
-
-            if ($customer->getPaymentStatus() === 'RECEIVED' && $customer->isLicenseActive()) {
-                $this->respondWithJson(200, [
-                    'status' => 'success',
-                    'message' => 'Extensão ativada com sucesso!',
-                    'licenseKey' => $customer->getLicenseKey(),
-                    'plan' => $customer->getPlan(),
-                    'expiresAt' => $customer->getLicenseExpiresAt() ? $customer->getLicenseExpiresAt()->format('Y-m-d H:i:s') : null
+                $this->logger->info('Linked new chrome identity to customer license', [
+                    'email' => $customer->getEmail(),
+                    'chrome_identity_id' => $params['chrome_identity_id']
                 ]);
-                return;
             }
 
             $this->respondWithJson(200, [
-                'status' => 'inactive',
-                'message' => 'A sua licença está inativa ou expirada. Efetue o pagamento para ativar.'
+                'status' => 'success',
+                'message' => 'Extensão ativada com sucesso!',
+                'licenseKey' => $customer->getLicenseKey(),
+                'plan' => $customer->getPlan(),
+                'expiresAt' => $customer->getLicenseExpiresAt() ? $customer->getLicenseExpiresAt()->format('Y-m-d H:i:s') : null
             ]);
 
         } catch (\Throwable $e) {
@@ -87,9 +119,9 @@ class ActivationController
         return ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'OPTIONS';
     }
 
-    private function validateParams(?string $chromeIdentityId, ?string $email, ?string $extensionId): bool
+    private function validateParams(?string $chromeIdentityId, ?string $email, ?string $extensionId, ?string $licenseKey): bool
     {
-        return !empty($chromeIdentityId) && !empty($email) && !empty($extensionId);
+        return !empty($chromeIdentityId) && !empty($email) && !empty($extensionId) && !empty($licenseKey);
     }
 
     private function isValidExtensionId(string $extensionId): bool
@@ -99,15 +131,6 @@ class ActivationController
             return true; // Se não configurado no .env, desabilita a restrição para evitar bloqueios
         }
         return $extensionId === $allowedExtensionId;
-    }
-
-    private function findCustomer(string $chromeIdentityId, string $email): ?Customer
-    {
-        $customer = $this->customerRepository->findByChromeIdentityId($chromeIdentityId);
-        if (!$customer) {
-            $customer = $this->customerRepository->findByEmail($email);
-        }
-        return $customer;
     }
 
     private function captureAndSanitizeInputs(): array
@@ -122,11 +145,13 @@ class ActivationController
         $rawChromeId = $_REQUEST['chrome_identity_id'] ?? $input['chrome_identity_id'] ?? null;
         $rawEmail = $_REQUEST['email'] ?? $input['email'] ?? null;
         $rawExtensionId = $_REQUEST['extension_id'] ?? $input['extension_id'] ?? null;
+        $rawLicenseKey = $_REQUEST['license_key'] ?? $input['license_key'] ?? null;
 
         return [
             'chrome_identity_id' => $this->sanitizeChromeIdentityId($rawChromeId),
             'email' => $this->sanitizeEmail($rawEmail),
-            'extension_id' => $this->sanitizeExtensionId($rawExtensionId)
+            'extension_id' => $this->sanitizeExtensionId($rawExtensionId),
+            'license_key' => $this->sanitizeLicenseKey($rawLicenseKey)
         ];
     }
 
@@ -160,6 +185,15 @@ class ActivationController
         // IDs de extensão do Chrome contêm apenas caracteres de a-z minúsculos e comprimento fixo de 32 caracteres geralmente
         $extensionId = preg_replace('/[^a-z]/', '', strtolower($rawExtensionId));
         return substr($extensionId, 0, 100);
+    }
+
+    private function sanitizeLicenseKey(?string $rawLicenseKey): ?string
+    {
+        if ($rawLicenseKey === null) {
+            return null;
+        }
+        $licenseKey = preg_replace('/[^a-zA-Z0-9_\-]/', '', $rawLicenseKey);
+        return substr($licenseKey, 0, 100);
     }
 
     private function setupCorsHeaders(): void

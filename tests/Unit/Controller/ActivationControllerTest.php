@@ -43,7 +43,7 @@ class ActivationControllerTest extends TestCase
 
         $response = json_decode($output, true);
         $this->assertEquals('error', $response['status']);
-        $this->assertStringContainsString('Parâmetros chrome_identity_id, email e extension_id são obrigatórios', $response['message']);
+        $this->assertStringContainsString('Parâmetros chrome_identity_id, email, extension_id e license_key são obrigatórios', $response['message']);
     }
 
     public function testHandleRequestInvalidExtensionIdReturns403()
@@ -51,7 +51,8 @@ class ActivationControllerTest extends TestCase
         $this->setRequestParams([
             'chrome_identity_id' => 'chrome_user_123',
             'email' => 'user@example.com',
-            'extension_id' => 'wrongextensionidhere'
+            'extension_id' => 'wrongextensionidhere',
+            'license_key' => 'lic_abc123'
         ]);
 
         $controller = new ActivationController($this->customerRepo, $this->logger);
@@ -70,13 +71,9 @@ class ActivationControllerTest extends TestCase
         $this->setRequestParams([
             'chrome_identity_id' => 'chrome_user_123',
             'email' => 'notfound@example.com',
-            'extension_id' => 'gpjjhlfkdaakcpllhfobnmdjnbgpefgc'
+            'extension_id' => 'gpjjhlfkdaakcpllhfobnmdjnbgpefgc',
+            'license_key' => 'lic_abc123'
         ]);
-
-        $this->customerRepo->expects($this->once())
-            ->method('findByChromeIdentityId')
-            ->with('chrome_user_123')
-            ->willReturn(null);
 
         $this->customerRepo->expects($this->once())
             ->method('findByEmail')
@@ -91,7 +88,35 @@ class ActivationControllerTest extends TestCase
 
         $response = json_decode($output, true);
         $this->assertEquals('not_found', $response['status']);
-        $this->assertStringContainsString('Nenhum cadastro ou licença ativa encontrada', $response['message']);
+        $this->assertStringContainsString('Nenhum cadastro encontrado para o email fornecido', $response['message']);
+    }
+
+    public function testHandleRequestInvalidLicenseKeyReturns200WithInvalidKey()
+    {
+        $this->setRequestParams([
+            'chrome_identity_id' => 'chrome_user_123',
+            'email' => 'active@example.com',
+            'extension_id' => 'gpjjhlfkdaakcpllhfobnmdjnbgpefgc',
+            'license_key' => 'wrong_lic_key'
+        ]);
+
+        $customer = new Customer('Active User', 'active@example.com', '5511999999999');
+        $customer->assignLicense('lic_key_abc');
+
+        $this->customerRepo->expects($this->once())
+            ->method('findByEmail')
+            ->with('active@example.com')
+            ->willReturn($customer);
+
+        $controller = new ActivationController($this->customerRepo, $this->logger);
+
+        ob_start();
+        $controller->handleRequest();
+        $output = ob_get_clean();
+
+        $response = json_decode($output, true);
+        $this->assertEquals('invalid_key', $response['status']);
+        $this->assertStringContainsString('Chave de licença inválida', $response['message']);
     }
 
     public function testHandleRequestActiveCustomerReturnsSuccessAndLinksChromeId()
@@ -99,7 +124,8 @@ class ActivationControllerTest extends TestCase
         $this->setRequestParams([
             'chrome_identity_id' => 'chrome_user_123',
             'email' => 'active@example.com',
-            'extension_id' => 'gpjjhlfkdaakcpllhfobnmdjnbgpefgc'
+            'extension_id' => 'gpjjhlfkdaakcpllhfobnmdjnbgpefgc',
+            'license_key' => 'lic_key_abc'
         ]);
 
         $activeCustomer = new Customer('Active User', 'active@example.com', '5511999999999');
@@ -109,11 +135,6 @@ class ActivationControllerTest extends TestCase
 
         // Initially has no chromeIdentityId linked
         $this->assertNull($activeCustomer->getChromeIdentityId());
-
-        $this->customerRepo->expects($this->once())
-            ->method('findByChromeIdentityId')
-            ->with('chrome_user_123')
-            ->willReturn(null);
 
         $this->customerRepo->expects($this->once())
             ->method('findByEmail')
@@ -139,20 +160,52 @@ class ActivationControllerTest extends TestCase
         $this->assertStringContainsString('Extensão ativada com sucesso', $response['message']);
     }
 
+    public function testHandleRequestActiveCustomerDeviceConflictReturnsConflict()
+    {
+        $this->setRequestParams([
+            'chrome_identity_id' => 'chrome_another_device',
+            'email' => 'active@example.com',
+            'extension_id' => 'gpjjhlfkdaakcpllhfobnmdjnbgpefgc',
+            'license_key' => 'lic_key_abc'
+        ]);
+
+        $activeCustomer = new Customer('Active User', 'active@example.com', '5511999999999');
+        $activeCustomer->markAsPaid('pay_999');
+        $activeCustomer->assignLicense('lic_key_abc');
+        $activeCustomer->setChromeIdentityId('chrome_user_123'); // Already bound to another profile
+
+        $this->customerRepo->expects($this->once())
+            ->method('findByEmail')
+            ->with('active@example.com')
+            ->willReturn($activeCustomer);
+
+        $controller = new ActivationController($this->customerRepo, $this->logger);
+
+        ob_start();
+        $controller->handleRequest();
+        $output = ob_get_clean();
+
+        $response = json_decode($output, true);
+        $this->assertEquals('conflict', $response['status']);
+        $this->assertStringContainsString('Esta licença já está ativada em outro perfil', $response['message']);
+    }
+
     public function testHandleRequestInactiveCustomerReturnsInactive()
     {
         $this->setRequestParams([
             'chrome_identity_id' => 'chrome_user_123',
             'email' => 'inactive@example.com',
-            'extension_id' => 'gpjjhlfkdaakcpllhfobnmdjnbgpefgc'
+            'extension_id' => 'gpjjhlfkdaakcpllhfobnmdjnbgpefgc',
+            'license_key' => 'lic_key_abc'
         ]);
 
         $inactiveCustomer = new Customer('Inactive User', 'inactive@example.com', '5511999999999');
+        $inactiveCustomer->assignLicense('lic_key_abc');
         // Payment is PENDING, so license is inactive
 
         $this->customerRepo->expects($this->once())
-            ->method('findByChromeIdentityId')
-            ->with('chrome_user_123')
+            ->method('findByEmail')
+            ->with('inactive@example.com')
             ->willReturn($inactiveCustomer);
 
         $controller = new ActivationController($this->customerRepo, $this->logger);
