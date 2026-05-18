@@ -9,6 +9,7 @@ use App\Config\Container;
 use App\Controllers\CheckoutController;
 use App\Controllers\WebhookController;
 use App\Controllers\ActivationController;
+use App\Controllers\VerificationController;
 use Bramus\Router\Router;
 
 // Carrega variáveis do ambiente (.env)
@@ -30,6 +31,12 @@ $router->match('GET|POST', '/checkout', function () use ($container) {
 // Rota de Ativação Limpa: /activate
 $router->match('GET|POST', '/activate', function () use ($container) {
     $controller = $container->get(ActivationController::class);
+    $controller->handleRequest();
+});
+
+// Rota de Verificação Ultrarrápida: /verify
+$router->match('GET|POST', '/verify', function () use ($container) {
+    $controller = $container->get(VerificationController::class);
     $controller->handleRequest();
 });
 
