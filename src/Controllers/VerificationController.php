@@ -43,7 +43,6 @@ class VerificationController
                 return;
             }
 
-            // Busca ultrarrápida pelo índice único do banco
             $customer = $this->customerRepository->findByChromeIdentityId($params['chrome_identity_id']);
 
             if (!$customer) {
@@ -54,7 +53,6 @@ class VerificationController
                 return;
             }
 
-            // Verifica se o pagamento foi recebido e se a licença está ativa
             if ($customer->getPaymentStatus() === 'RECEIVED' && $customer->isLicenseActive()) {
                 $this->respondWithJson(200, [
                     'status' => 'active',
