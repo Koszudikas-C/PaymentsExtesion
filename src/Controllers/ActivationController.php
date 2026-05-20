@@ -78,7 +78,7 @@ class ActivationController
             // Se já houver um chrome_identity_id cadastrado e for diferente do enviado:
             $savedChromeId = $customer->getChromeIdentityId();
             if (!empty($savedChromeId) && $savedChromeId !== $params['chrome_identity_id']) {
-                $forceReset = (bool)($_REQUEST['force'] ?? $input['force'] ?? false);
+                $forceReset = $params['force'];
 
                 if ($forceReset) {
                     // Transfere a licença para o novo perfil/dispositivo
@@ -161,12 +161,14 @@ class ActivationController
         $rawEmail = $_REQUEST['email'] ?? $input['email'] ?? null;
         $rawExtensionId = $_REQUEST['extension_id'] ?? $input['extension_id'] ?? null;
         $rawLicenseKey = $_REQUEST['license_key'] ?? $input['license_key'] ?? null;
+        $rawForce = $_REQUEST['force'] ?? $input['force'] ?? false;
 
         return [
             'chrome_identity_id' => $this->sanitizeChromeIdentityId($rawChromeId),
             'email' => $this->sanitizeEmail($rawEmail),
             'extension_id' => $this->sanitizeExtensionId($rawExtensionId),
-            'license_key' => $this->sanitizeLicenseKey($rawLicenseKey)
+            'license_key' => $this->sanitizeLicenseKey($rawLicenseKey),
+            'force' => filter_var($rawForce, FILTER_VALIDATE_BOOLEAN)
         ];
     }
 

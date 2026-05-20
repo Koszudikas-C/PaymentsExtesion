@@ -32,6 +32,7 @@ class VerificationController
         try {
             $params = $this->captureAndSanitizeInputs();
 
+            // chrome_identity_id, extension_id são sempre obrigatórios; email opcional para fallback
             if (empty($params['chrome_identity_id']) || empty($params['extension_id'])) {
                 $this->respondWithError(400, 'Parâmetros chrome_identity_id e extension_id são obrigatórios.');
                 return;
@@ -43,7 +44,31 @@ class VerificationController
                 return;
             }
 
+            // Primeiro tenta localizar pelo chrome_identity_id
             $customer = $this->customerRepository->findByChromeIdentityId($params['chrome_identity_id']);
+
+            // Se não encontrou e email foi fornecido, tenta buscar pelo email
+            if (!$customer && !empty($params['email'])) {
+                $customer = $this->customerRepository->findByEmail($params['email']);
+                
+                if ($customer) {
+                    $savedChromeId = $customer->getChromeIdentityId();
+                    
+                    if (empty($savedChromeId)) {
+                        // Se encontrou pelo email mas ainda não há chrome_identity_id associado, vincula agora
+                        $customer->setChromeIdentityId($params['chrome_identity_id']);
+                        $this->customerRepository->save($customer);
+                    } elseif ($savedChromeId !== $params['chrome_identity_id']) {
+                        // Conflito: O email existe mas está vinculado a outro chrome_identity_id.
+                        // A verificação silenciosa deve falhar para não permitir uso duplo.
+                        $this->respondWithJson(200, [
+                            'status' => 'conflict',
+                            'message' => 'Sua licença está ativada em outro perfil ou dispositivo. Faça a ativação novamente neste perfil para transferir o uso.'
+                        ]);
+                        return;
+                    }
+                }
+            }
 
             if (!$customer) {
                 $this->respondWithJson(200, [
@@ -99,10 +124,12 @@ class VerificationController
 
         $rawChromeId = $_REQUEST['chrome_identity_id'] ?? $input['chrome_identity_id'] ?? null;
         $rawExtensionId = $_REQUEST['extension_id'] ?? $input['extension_id'] ?? null;
+        $rawEmail = $_REQUEST['email'] ?? $input['email'] ?? null;
 
         return [
             'chrome_identity_id' => $this->sanitizeChromeIdentityId($rawChromeId),
-            'extension_id' => $this->sanitizeExtensionId($rawExtensionId)
+            'extension_id' => $this->sanitizeExtensionId($rawExtensionId),
+            'email' => $this->sanitizeEmail($rawEmail)
         ];
     }
 
@@ -113,6 +140,19 @@ class VerificationController
         }
         $chromeIdentityId = preg_replace('/[^a-zA-Z0-9@\.\-_]/', '', $rawChromeId);
         return substr($chromeIdentityId, 0, 255);
+    }
+
+    private function sanitizeEmail(?string $rawEmail): ?string
+    {
+        if ($rawEmail === null) {
+            return null;
+        }
+        $email = filter_var($rawEmail, FILTER_SANITIZE_EMAIL);
+        $email = strtolower(trim((string)$email));
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return null;
+        }
+        return substr($email, 0, 255);
     }
 
     private function sanitizeExtensionId(?string $rawExtensionId): ?string

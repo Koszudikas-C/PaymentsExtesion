@@ -16,6 +16,16 @@ use Bramus\Router\Router;
 $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
+// Configuração Global de CORS e resposta imediata para requisições de preflight (OPTIONS)
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, X-Requested-With, Asaas-Access-Token, Authorization');
+header_remove('X-Powered-By');
+
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'OPTIONS') {
+    exit(0);
+}
+
 // Instancia o roteador robusto
 $router = new Router();
 
@@ -44,15 +54,6 @@ $router->match('GET|POST', '/verify', function () use ($container) {
 $router->post('/webhook', function () use ($container) {
     $controller = $container->get(WebhookController::class);
     $controller->handleRequest();
-});
-
-// Trata requisições OPTIONS globais para CORS
-$router->options('/.*', function () {
-    header('Access-Control-Allow-Origin: *');
-    header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-    header('Access-Control-Allow-Headers: Content-Type, X-Requested-With, Asaas-Access-Token');
-    header_remove('X-Powered-By');
-    exit(0);
 });
 
 // Rota Fallback 404
