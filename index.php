@@ -10,11 +10,13 @@ use App\Controllers\CheckoutController;
 use App\Controllers\WebhookController;
 use App\Controllers\ActivationController;
 use App\Controllers\VerificationController;
+use App\Controllers\CampaignController;
 use Bramus\Router\Router;
 
 // Carrega variáveis do ambiente (.env)
 $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->load();
+
 
 // Configuração Global de CORS e resposta imediata para requisições de preflight (OPTIONS)
 header('Access-Control-Allow-Origin: *');
@@ -48,6 +50,18 @@ $router->match('GET|POST', '/activate', function () use ($container) {
 $router->match('GET|POST', '/verify', function () use ($container) {
     $controller = $container->get(VerificationController::class);
     $controller->handleRequest();
+});
+
+// Rota de Stats da Campanha: /campaign-stats
+$router->get('/campaign-stats', function () use ($container) {
+    $controller = $container->get(CampaignController::class);
+    $controller->getStats();
+});
+
+// Rota de Health Check: /health
+$router->get('/health', function () use ($container) {
+    $controller = $container->get(HealthCheckController::class);
+    $controller->check();
 });
 
 // Rota de Webhook Limpa: /webhook

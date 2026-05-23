@@ -431,3 +431,7 @@ FodyWeavers.xsd
 .phpunit.cache/*
 .env
 vendor
+.env.development
+.env.production
+composer.lock
+package-lock.json

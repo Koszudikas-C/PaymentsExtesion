@@ -6,4 +6,6 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    'TrafficCophp' => array($vendorDir . '/trafficcophp/bytebuffer/src'),
+    'Bramus' => array($vendorDir . '/bramus/router/src'),
 );

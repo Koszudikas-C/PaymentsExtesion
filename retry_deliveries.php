@@ -15,7 +15,7 @@ $container = Container::build();
 
 $customerRepository = $container->get(CustomerRepositoryInterface::class);
 $emailService = $container->get(EmailServiceInterface::class);
-$logger = $container->get(Logger::class);
+$logger = $container->get('logger.retry');
 
 $logger->info('Starting License Retry Task');
 

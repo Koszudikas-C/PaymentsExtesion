@@ -43,7 +43,7 @@ class PHPMailerService implements EmailServiceInterface
             ];
 
             // Recipients
-            $mail->setFrom($this->config['username'], 'Equipe ExtensionWebDrive');
+            $mail->setFrom($this->config['username'], 'Exportador Histórico Pro Licença');
             $mail->addAddress($to);
 
             // Content
