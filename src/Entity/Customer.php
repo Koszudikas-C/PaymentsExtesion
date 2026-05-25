@@ -16,7 +16,7 @@ class Customer extends BaseEntity
     #[ORM\Column(length: 255)]
     private string $name;
 
-    #[ORM\Column(length: 255, unique: true)]
+    #[ORM\Column(length: 255)]
     private string $email;
 
     #[ORM\Column(length: 50)]

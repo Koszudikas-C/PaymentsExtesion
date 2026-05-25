@@ -64,9 +64,6 @@ class PaymentReceivedProcessorTest extends TestCase
                 'mobilePhone' => '5511999999999'
             ]);
 
-        $this->customerRepo->expects($this->once())
-            ->method('findByEmail')
-            ->willReturn(null);
 
         $this->licenseService->expects($this->once())
             ->method('generateLicense')
@@ -129,7 +126,8 @@ class PaymentReceivedProcessorTest extends TestCase
             ]);
 
         $this->customerRepo->expects($this->once())
-            ->method('findByEmail')
+            ->method('findBySubscriptionId')
+            ->with('sub_987654')
             ->willReturn(null);
 
         $this->licenseService->expects($this->once())
@@ -157,18 +155,14 @@ class PaymentReceivedProcessorTest extends TestCase
         $this->assertEquals('2026-06-19', $savedCustomer->getLicenseExpiresAt()->format('Y-m-d'));
     }
 
-    public function testProcessDoublePaymentLifetimeRefundQueue()
+    public function testProcessMultipleLifetimePurchasesGenerateDifferentLicenses()
     {
         $data = [
             'payment' => [
-                'id' => 'pay_double_123',
+                'id' => 'pay_second_123',
                 'customer' => 'cus_123'
             ]
         ];
-
-        $existingCustomer = new Customer('Lifetime User', 'lifetime@example.com', '5511999999999');
-        $existingCustomer->markAsPaid('pay_initial_123');
-        $existingCustomer->setPlan('LIFETIME');
 
         $this->gateway->expects($this->once())
             ->method('getCustomerInfo')
@@ -178,22 +172,31 @@ class PaymentReceivedProcessorTest extends TestCase
                 'mobilePhone' => '5511999999999'
             ]);
 
-        $this->customerRepo->expects($this->once())
-            ->method('findByEmail')
-            ->willReturn($existingCustomer);
+        // E-mail já existe, mas como é um pagamento Lifetime (sem subscriptionId),
+        // findBySubscriptionId não é chamado e gera uma nova licença para o mesmo e-mail.
+        $this->licenseService->expects($this->once())
+            ->method('generateLicense')
+            ->willReturn('NEW-LIC-123');
 
+        $this->emailService->expects($this->once())
+            ->method('sendLicenseEmail')
+            ->with('lifetime@example.com', 'NEW-LIC-123', $this->logger, 'Lifetime User')
+            ->willReturn(true);
+
+        $savedCustomer = null;
         $this->customerRepo->expects($this->once())
             ->method('save')
-            ->with($existingCustomer);
-
-        $this->logger->expects($this->once())
-            ->method('warning')
-            ->with('Double payment detected for Lifetime user. Logged for refund.');
+            ->with($this->callback(function (Customer $customer) use (&$savedCustomer) {
+                $savedCustomer = $customer;
+                return true;
+            }));
 
         $this->processor->process($data);
 
-        $audits = $existingCustomer->getAuditLogs();
-        $this->assertEquals('DOUBLE_PAYMENT_DETECTED', $audits->last()->getAction());
+        $this->assertNotNull($savedCustomer);
+        $this->assertEquals('NEW-LIC-123', $savedCustomer->getLicenseKey());
+        $this->assertEquals('lifetime@example.com', $savedCustomer->getEmail());
+        $this->assertEquals('LIFETIME', $savedCustomer->getPlan());
     }
 
     public function testProcessMonthlyExtension()
@@ -201,13 +204,15 @@ class PaymentReceivedProcessorTest extends TestCase
         $data = [
             'payment' => [
                 'id' => 'pay_renew_123',
-                'customer' => 'cus_123'
+                'customer' => 'cus_123',
+                'subscription' => 'sub_monthly_123'
             ]
         ];
 
         $existingCustomer = new Customer('Monthly User', 'monthly@example.com', '5511999999999');
         $existingCustomer->markAsPaid('pay_initial_123');
         $existingCustomer->setPlan('MONTHLY');
+        $existingCustomer->setSubscriptionId('sub_monthly_123');
 
         $initialExpiration = new \DateTime('2026-06-01 12:00:00');
         $existingCustomer->setLicenseExpiresAt($initialExpiration);
@@ -221,7 +226,8 @@ class PaymentReceivedProcessorTest extends TestCase
             ]);
 
         $this->customerRepo->expects($this->once())
-            ->method('findByEmail')
+            ->method('findBySubscriptionId')
+            ->with('sub_monthly_123')
             ->willReturn($existingCustomer);
 
         $this->customerRepo->expects($this->once())
@@ -235,5 +241,62 @@ class PaymentReceivedProcessorTest extends TestCase
         $this->processor->process($data);
 
         $this->assertEquals('2026-07-01 12:00:00', $existingCustomer->getLicenseExpiresAt()->format('Y-m-d H:i:s'));
+    }
+
+    public function testProcessLicenseCollisionResolvesWithUniqueKey()
+    {
+        $data = [
+            'payment' => ['customer' => 'cus_new_123']
+        ];
+
+        $this->gateway->expects($this->once())
+            ->method('getCustomerInfo')
+            ->willReturn([
+                'email' => 'kain_1517@hotmail.com',
+                'name' => 'Kain Test',
+                'mobilePhone' => '5511999999999'
+            ]);
+
+        // A primeira chave gerada colide, a segunda é única
+        $this->licenseService->expects($this->exactly(2))
+            ->method('generateLicense')
+            ->willReturnMap([
+                ['5511999999999', 'test-salt', 'DUPLICATE-KEY'],
+                ['5511999999999_1', 'test-salt', 'UNIQUE-KEY']
+            ]);
+
+        // Simula que 'DUPLICATE-KEY' já está com outro cliente
+        $collidingCustomer = new Customer('Other User', 'other@example.com', '5511999999999');
+        
+        $this->customerRepo->expects($this->exactly(2))
+            ->method('findByLicenseKey')
+            ->willReturnMap([
+                ['DUPLICATE-KEY', $collidingCustomer],
+                ['UNIQUE-KEY', null]
+            ]);
+
+        $this->logger->expects($this->once())
+            ->method('warning')
+            ->with($this->stringContains('Security Alert: WhatsApp reuse or license collision attempt'));
+
+        // Verifica que o e-mail recebe a licença correta (única)
+        $this->emailService->expects($this->once())
+            ->method('sendLicenseEmail')
+            ->with('kain_1517@hotmail.com', 'UNIQUE-KEY', $this->logger, 'Kain Test')
+            ->willReturn(true);
+
+        $savedCustomer = null;
+        $this->customerRepo->expects($this->once())
+            ->method('save')
+            ->with($this->callback(function ($customer) use (&$savedCustomer) {
+                $savedCustomer = $customer;
+                return true;
+            }));
+
+        $this->processor->process($data);
+
+        $this->assertNotNull($savedCustomer);
+        $this->assertEquals('UNIQUE-KEY', $savedCustomer->getLicenseKey());
+        $this->assertEquals('kain_1517@hotmail.com', $savedCustomer->getEmail());
     }
 }

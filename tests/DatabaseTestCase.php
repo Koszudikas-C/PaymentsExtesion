@@ -17,7 +17,7 @@ abstract class DatabaseTestCase extends TestCase
             $this->markTestSkipped('A extensão pdo_sqlite não está habilitada neste ambiente. Os testes de integração (banco de dados) foram pulados.');
         }
 
-        if (file_exists(__DIR__ . '/../.env')) {
+        if (($_ENV['APP_ENV'] ?? '') !== 'testing' && file_exists(__DIR__ . '/../.env')) {
             $dotenv = \Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
             $dotenv->safeLoad();
         }

@@ -11,6 +11,7 @@ use App\Controllers\WebhookController;
 use App\Controllers\ActivationController;
 use App\Controllers\VerificationController;
 use App\Controllers\CampaignController;
+use App\Controllers\HealthCheckController;
 use Bramus\Router\Router;
 
 // Carrega variáveis do ambiente (.env)

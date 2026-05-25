@@ -63,17 +63,21 @@ class PaymentReceivedProcessor implements WebhookProcessorInterface
         $name = $customerInfo['name'] ?? 'Usuário';
         $whatsapp = $customerInfo['mobilePhone'] ?? $customerInfo['phone'] ?? 'unknown';
 
+        $subscriptionId = $payment['subscription'] ?? null;
+
         $customer = null;
         $dbFailed = false;
         $dbErrorMsg = '';
 
-        // 1. Tenta buscar cliente existente no banco
+        // 1. Tenta buscar cliente existente no banco caso seja uma renovação de assinatura
         try {
-            $customer = $this->customerRepository->findByEmail($email);
+            if ($subscriptionId) {
+                $customer = $this->customerRepository->findBySubscriptionId($subscriptionId);
+            }
         } catch (\Throwable $e) {
             $dbFailed = true;
             $dbErrorMsg = 'Lookup failed: ' . $e->getMessage();
-            $this->logger->error('Database offline during customer lookup. Using fallback flow.', ['error' => $e->getMessage()]);
+            $this->logger->error('Database offline during customer lookup by subscription. Using fallback flow.', ['error' => $e->getMessage()]);
         }
 
         if (!$customer) {
@@ -137,15 +141,32 @@ class PaymentReceivedProcessor implements WebhookProcessorInterface
         
         // 2. Tenta gerar/atribuir licença
         if (!$customer->getLicenseKey()) {
-            $generatedLicense = $this->licenseService->generateLicense($whatsapp, $this->licenseSalt);
-            
+            $attempts = 0;
             $licenseAssigned = false;
-            if (!$dbFailed) {
+
+            while (!$licenseAssigned && $attempts < 10) {
+                $identifier = $attempts === 0 ? $whatsapp : $whatsapp . '_' . $attempts;
+                $generatedLicense = $this->licenseService->generateLicense($identifier, $this->licenseSalt);
+
+                if ($dbFailed) {
+                    // Se o banco de dados falhou anteriormente, não conseguimos fazer o lookup.
+                    // Nesse caso, atribuímos diretamente em memória para não travar o cliente, e o fallback lidará com isso.
+                    $customer->assignLicense($generatedLicense);
+                    $licenseAssigned = true;
+                    break;
+                }
+
                 try {
                     $otherCustomer = $this->customerRepository->findByLicenseKey($generatedLicense);
-                    
+
                     if ($otherCustomer && $otherCustomer->getEmail() !== $email) {
-                        $this->logger->warning('Security Alert: WhatsApp reuse attempt');
+                        $this->logger->warning('Security Alert: WhatsApp reuse or license collision attempt', [
+                            'whatsapp' => $whatsapp,
+                            'attempt' => $attempts,
+                            'colliding_email' => $otherCustomer->getEmail(),
+                            'current_email' => $email
+                        ]);
+                        $attempts++;
                     } else {
                         $customer->assignLicense($generatedLicense);
                         $licenseAssigned = true;
@@ -154,11 +175,17 @@ class PaymentReceivedProcessor implements WebhookProcessorInterface
                     $dbFailed = true;
                     $dbErrorMsg = 'License lookup failed: ' . $e->getMessage();
                     $this->logger->error('Database offline during license validation.', ['error' => $e->getMessage()]);
+                    
+                    // Se o banco falhou no lookup, atribuímos diretamente em memória para não travar o cliente
+                    $customer->assignLicense($generatedLicense);
+                    $licenseAssigned = true;
                 }
             }
 
-            // Se o banco falhou ou não conseguimos validar, atribuímos a licença diretamente em memória para não travar o cliente
             if (!$licenseAssigned) {
+                // Caso extremo após 10 tentativas de colisão: gera uma licença com identificador único (com hash aleatório)
+                $randomIdentifier = $whatsapp . '_' . bin2hex(random_bytes(5));
+                $generatedLicense = $this->licenseService->generateLicense($randomIdentifier, $this->licenseSalt);
                 $customer->assignLicense($generatedLicense);
             }
         }
@@ -195,7 +222,9 @@ class PaymentReceivedProcessor implements WebhookProcessorInterface
 
     private function saveToFallbackFile(Customer $customer, string $errorMessage): void
     {
-        $fallbackDir = __DIR__ . '/../../../logs';
+        $fallbackDir = ($_ENV['APP_ENV'] ?? '') === 'testing'
+            ? __DIR__ . '/../../../logs_test'
+            : __DIR__ . '/../../../logs';
         if (!is_dir($fallbackDir)) {
             mkdir($fallbackDir, 0777, true);
         }
@@ -246,7 +275,9 @@ class PaymentReceivedProcessor implements WebhookProcessorInterface
 
     private function logDoublePayment(Customer $customer, string $paymentId, array $paymentData): void
     {
-        $logFile = __DIR__ . '/../../../logs/double_payments.json';
+        $logFile = ($_ENV['APP_ENV'] ?? '') === 'testing'
+            ? __DIR__ . '/../../../logs_test/double_payments.json'
+            : __DIR__ . '/../../../logs/double_payments.json';
         $dir = dirname($logFile);
         if (!is_dir($dir)) {
             mkdir($dir, 0777, true);

@@ -44,23 +44,13 @@ class ActivationController
                 return;
             }
 
-            // Busca o cliente pelo email fornecido
-            $customer = $this->customerRepository->findByEmail($params['email']);
+            // Busca o cliente pela chave de licença fornecida
+            $customer = $this->customerRepository->findByLicenseKey($params['license_key']);
 
-            if (!$customer) {
-                $this->respondWithJson(200, [
-                    'status' => 'not_found',
-                    'message' => 'Nenhum cadastro encontrado para o email fornecido.'
-                ]);
-                return;
-            }
-
-            // Verifica se a chave de licença enviada bate com a salva no banco de dados
-            $savedLicenseKey = $customer->getLicenseKey();
-            if (empty($savedLicenseKey) || $params['license_key'] !== $savedLicenseKey) {
+            if (!$customer || $customer->getEmail() !== $params['email']) {
                 $this->respondWithJson(200, [
                     'status' => 'invalid_key',
-                    'message' => 'Chave de licença inválida para o email fornecido.'
+                    'message' => 'Chave de licença ou e-mail inválido.'
                 ]);
                 return;
             }

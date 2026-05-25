@@ -32,7 +32,6 @@ class PromotionService implements PromotionServiceInterface
 
     public function handlePromotionGoal(Customer $customer, Logger $log): void
     {
-        // Só verifica a meta se o cliente que acabou de pagar for LIFETIME e o pagamento foi confirmado
         if ($customer->getPlan() !== 'LIFETIME' || $customer->getPaymentStatus() !== 'RECEIVED') {
             return;
         }
