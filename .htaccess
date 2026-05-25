@@ -1,3 +1,23 @@
+# Impedir a listagem de diretórios
+Options -Indexes
+
+# Impedir acesso a arquivos ocultos (como .env)
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Impedir acesso a pastas sensíveis
+RewriteEngine On
+RewriteRule ^(vendor|src|logs|tests|bin|Factories|Interfaces|Repository|Services|Controllers|Entity|Handlers|Migrations)/ - [F,L]
+
+# Impedir acesso a arquivos de configuração/build
+<FilesMatch "^(composer\.(json|lock)|phpunit\.xml|php\.ini|migrations\.php|cli-config\.php)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Roteamento para o index.php (Front Controller)
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteCond %{REQUEST_FILENAME} !-f
