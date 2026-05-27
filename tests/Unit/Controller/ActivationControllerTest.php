@@ -254,4 +254,57 @@ class ActivationControllerTest extends TestCase
         $this->assertEquals('inactive', $response['status']);
         $this->assertStringContainsString('A sua licença está inativa ou expirada', $response['message']);
     }
+
+    public function testHandleRequestActiveCustomerUnbindsExistingChromeIdFromOtherCustomer()
+    {
+        $this->setRequestParams([
+            'chrome_identity_id' => 'chrome_user_123',
+            'email' => 'active@example.com',
+            'extension_id' => 'gpjjhlfkdaakcpllhfobnmdjnbgpefgc',
+            'license_key' => 'lic_key_abc'
+        ]);
+
+        $activeCustomer = new Customer('Active User', 'active@example.com', '5511999999999');
+        $activeCustomer->markAsPaid('pay_999');
+        $activeCustomer->assignLicense('lic_key_abc');
+        $activeCustomer->setPlan('LIFETIME');
+
+        $otherCustomer = new Customer('Other User', 'other@example.com', '999999999');
+        $otherCustomer->setChromeIdentityId('chrome_user_123');
+
+        $this->customerRepo->expects($this->once())
+            ->method('findByLicenseKey')
+            ->with('lic_key_abc')
+            ->willReturn($activeCustomer);
+
+        // Retorna o outro cliente já associado ao mesmo chromeIdentityId
+        $this->customerRepo->expects($this->once())
+            ->method('findByChromeIdentityId')
+            ->with('chrome_user_123')
+            ->willReturn($otherCustomer);
+
+        // Espera duas chamadas de save: primeiro para desvincular o outro, segundo para vincular o novo
+        $this->customerRepo->expects($this->exactly(2))
+            ->method('save')
+            ->with($this->callback(function (Customer $customer) use ($activeCustomer, $otherCustomer) {
+                if ($customer->getId() === $otherCustomer->getId()) {
+                    return $customer->getChromeIdentityId() === null;
+                }
+                if ($customer->getId() === $activeCustomer->getId()) {
+                    return $customer->getChromeIdentityId() === 'chrome_user_123';
+                }
+                return false;
+            }));
+
+        $controller = new ActivationController($this->customerRepo, $this->logger);
+
+        ob_start();
+        $controller->handleRequest();
+        $output = ob_get_clean();
+
+        $response = json_decode($output, true);
+        $this->assertEquals('success', $response['status']);
+        $this->assertEquals('chrome_user_123', $activeCustomer->getChromeIdentityId());
+        $this->assertNull($otherCustomer->getChromeIdentityId());
+    }
 }

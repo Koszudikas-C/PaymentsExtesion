@@ -21,7 +21,16 @@ class DiscordLogHandler extends AbstractProcessingHandler
     {
         $levelName = $record->level->name;
         $message = $record->message;
-        $context = !empty($record->context) ? json_encode($record->context, JSON_PRETTY_PRINT) : 'Nenhum';
+        $context = !empty($record->context) ? json_encode($record->context, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : 'Nenhum';
+
+        // Evita extrapolar os limites do Discord (max 4096 para descrição, 1024 para campos)
+        if (strlen($message) > 2000) {
+            $message = mb_strcut($message, 0, 1980, 'UTF-8') . " ... (truncado)";
+        }
+
+        if (strlen($context) > 980) {
+            $context = mb_strcut($context, 0, 960, 'UTF-8') . "\n... (truncado)";
+        }
 
         $this->discordService->sendEmbed(
             "🔥 Alerta IMEDIATO: $levelName",

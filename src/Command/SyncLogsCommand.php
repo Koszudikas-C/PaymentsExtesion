@@ -84,8 +84,17 @@ class SyncLogsCommand extends Command
 
             if ($shouldSync) {
                 $message = $data['message'] ?? 'Sem mensagem';
-                $context = !empty($data['context']) ? json_encode($data['context'], JSON_PRETTY_PRINT) : 'Nenhum';
+                $context = !empty($data['context']) ? json_encode($data['context'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : 'Nenhum';
                 
+                // Evita extrapolar os limites do Discord (max 4096 para descrição, 1024 para campos)
+                if (strlen($message) > 2000) {
+                    $message = mb_strcut($message, 0, 1980, 'UTF-8') . " ... (truncado)";
+                }
+
+                if (strlen($context) > 980) {
+                    $context = mb_strcut($context, 0, 960, 'UTF-8') . "\n... (truncado)";
+                }
+
                 $color = ($level === 'INFO') ? 0x3498db : 0xff0000;
                 $emoji = ($level === 'INFO') ? 'ℹ️' : '🚨';
 

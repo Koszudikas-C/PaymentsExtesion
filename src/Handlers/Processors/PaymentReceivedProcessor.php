@@ -85,7 +85,6 @@ class PaymentReceivedProcessor implements WebhookProcessorInterface
         } else {
             if ($customer->getPaymentStatus() === 'RECEIVED') {
                 if ($customer->getPlan() === 'LIFETIME') {
-                    // Pagamento duplo vitalício -> registra para reembolso
                     $this->logDoublePayment($customer, $customerId, $payment);
                     $customer->recordAudit('DOUBLE_PAYMENT_DETECTED', "Double payment received for payment ID: $customerId. Added to refund queue.");
                     if (!$dbFailed) {
@@ -93,7 +92,6 @@ class PaymentReceivedProcessor implements WebhookProcessorInterface
                     }
                     return;
                 } elseif ($customer->getPlan() === 'MONTHLY') {
-                    // Extensão mensal com backup para revocabilidade
                     $prevExpires = $customer->getLicenseExpiresAt();
                     $prevExpiresStr = $prevExpires ? $prevExpires->format('Y-m-d H:i:s') : 'never';
                     
@@ -119,7 +117,6 @@ class PaymentReceivedProcessor implements WebhookProcessorInterface
         $customer->markAsPaid($customerId);
         $customer->setSystemAccess();
         
-        // Define o plano (Mensal ou Vitalício) com base no pagamento do Asaas
         $subscriptionId = $payment['subscription'] ?? null;
         if ($subscriptionId) {
             $customer->setPlan('MONTHLY');
@@ -128,7 +125,7 @@ class PaymentReceivedProcessor implements WebhookProcessorInterface
             $dueDateStr = $payment['dueDate'] ?? null;
             if ($dueDateStr) {
                 $dueDate = new \DateTime($dueDateStr);
-                $dueDate->modify('+3 days'); // tolerância
+                $dueDate->modify('+3 days');
                 $customer->setLicenseExpiresAt($dueDate);
             } else {
                 $customer->setLicenseExpiresAt((new \DateTime('now'))->modify('+33 days'));

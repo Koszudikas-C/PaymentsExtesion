@@ -72,6 +72,14 @@ class ActivationController
 
                 if ($forceReset) {
                     // Transfere a licença para o novo perfil/dispositivo
+                    // Primeiro, desvincula o novo chrome_identity_id de qualquer outra licença/cliente para evitar erros de restrição única
+                    $existingBoundCustomer = $this->customerRepository->findByChromeIdentityId($params['chrome_identity_id']);
+                    if ($existingBoundCustomer && $existingBoundCustomer->getId() !== $customer->getId()) {
+                        $existingBoundCustomer->setChromeIdentityId(null);
+                        $existingBoundCustomer->recordAudit('CHROME_ID_UNBOUND', "Unbound Chrome Identity because it was force-transferred to license: " . $customer->getLicenseKey());
+                        $this->customerRepository->save($existingBoundCustomer);
+                    }
+
                     $customer->setChromeIdentityId($params['chrome_identity_id']);
                     $customer->recordAudit('LICENSE_TRANSFERRED', "License transferred to new Chrome Identity: {$params['chrome_identity_id']}");
                     $this->customerRepository->save($customer);
@@ -97,6 +105,19 @@ class ActivationController
 
             // Associa o chrome_identity_id enviado se ainda estiver vazio
             if (empty($savedChromeId)) {
+                // Antes de salvar, verifica se já existe outro cliente associado a esse mesmo chrome_identity_id e o desvincula
+                $existingBoundCustomer = $this->customerRepository->findByChromeIdentityId($params['chrome_identity_id']);
+                if ($existingBoundCustomer && $existingBoundCustomer->getId() !== $customer->getId()) {
+                    $existingBoundCustomer->setChromeIdentityId(null);
+                    $existingBoundCustomer->recordAudit('CHROME_ID_UNBOUND', "Unbound Chrome Identity because it was linked to a new license: " . $customer->getLicenseKey());
+                    $this->customerRepository->save($existingBoundCustomer);
+                    
+                    $this->logger->info('Unbound chrome identity from other customer', [
+                        'other_customer_email' => $existingBoundCustomer->getEmail(),
+                        'chrome_identity_id' => $params['chrome_identity_id']
+                    ]);
+                }
+
                 $customer->setChromeIdentityId($params['chrome_identity_id']);
                 $this->customerRepository->save($customer);
                 $this->logger->info('Linked new chrome identity to customer license', [
