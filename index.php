@@ -78,9 +78,15 @@ $router->get('/health', function () use ($container) {
     $controller->check();
 });
 
-// Rota de Webhook Limpa: /webhook
+// Rota de Webhook Limpa: /webhook (Asaas)
 $router->post('/webhook', function () use ($container) {
     $controller = $container->get(WebhookController::class);
+    $controller->handleRequest();
+});
+
+// Rota de Webhook Internacional: /stripe-webhook
+$router->post('/stripe-webhook', function () use ($container) {
+    $controller = $container->get(\App\Controllers\StripeWebhookController::class);
     $controller->handleRequest();
 });
 

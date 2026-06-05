@@ -159,8 +159,22 @@ class Container
             PaymentReceivedProcessor::class => \DI\autowire()
                 ->constructorParameter('licenseSalt', \DI\get('settings.license_salt')),
 
+            \App\Handlers\Processors\StripeCheckoutCompletedProcessor::class => \DI\autowire()
+                ->constructorParameter('licenseSalt', \DI\get('settings.license_salt')),
+
             // Fábricas
-            WebhookProcessorFactory::class => \DI\autowire(),
+            WebhookProcessorFactory::class => function (ContainerInterface $c) {
+                $factory = new WebhookProcessorFactory($c);
+                $factory->registerProcessor('PAYMENT_RECEIVED', PaymentReceivedProcessor::class);
+                $factory->registerProcessor('PAYMENT_CONFIRMED', PaymentReceivedProcessor::class);
+                return $factory;
+            },
+
+            \App\Factories\StripeWebhookProcessorFactory::class => function (ContainerInterface $c) {
+                $factory = new \App\Factories\StripeWebhookProcessorFactory($c);
+                $factory->registerProcessor('checkout.session.completed', \App\Handlers\Processors\StripeCheckoutCompletedProcessor::class);
+                return $factory;
+            },
 
             // Handlers
             WebhookHandler::class => \DI\autowire(),
@@ -170,6 +184,8 @@ class Container
                 ->constructorParameter('settings', \DI\get('settings')),
 
             \App\Controllers\WebhookController::class => \DI\autowire(),
+
+            \App\Controllers\StripeWebhookController::class => \DI\autowire(),
 
             \App\Controllers\VerificationController::class => \DI\autowire(),
 

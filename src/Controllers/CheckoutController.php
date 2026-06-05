@@ -61,7 +61,20 @@ class CheckoutController
                 $this->logPerformance('CheckoutController', 'createPreRegisteredCustomer', $durationCreate);
             }
 
-            $checkoutUrl = $this->generateCheckoutUrl($params['email'], $params['name'], $params['phone']);
+            $clientIp = $this->getClientIp();
+            $countryCode = $this->getCountryCodeFromIp($clientIp);
+            
+            // Log do país detectado
+            $this->logger->info("Checkout request from IP {$clientIp} resolved to country: {$countryCode}");
+
+            if ($countryCode === 'BR') {
+                $checkoutUrl = $this->generateCheckoutUrl($params['email'], $params['name'], $params['phone']);
+                $message = 'Redirecionando para o pagamento seguro no Asaas.';
+            } else {
+                $checkoutUrl = $this->generateStripeCheckoutUrl($params['email'], $params['chrome_identity_id']);
+                $message = 'Redirecionando para o pagamento seguro internacional no Stripe.';
+            }
+
             if (!$checkoutUrl) {
                 $this->respondWithError(500, 'Configurações de pagamento ausentes no servidor.');
                 return;
@@ -73,7 +86,7 @@ class CheckoutController
             $this->respondWithJson(200, [
                 'status' => 'pending',
                 'checkoutUrl' => $checkoutUrl,
-                'message' => 'Redirecionando para o pagamento seguro no Asaas.'
+                'message' => $message
             ]);
 
         } catch (\Throwable $e) {
@@ -157,6 +170,69 @@ class CheckoutController
         ]);
 
         return $baseUrl . '?' . $queryParams;
+    }
+
+    private function generateStripeCheckoutUrl(string $email, string $chromeIdentityId): ?string
+    {
+        $linkId = $_ENV['STRIPE_PAYMENT_LINK_ID'] ?? null;
+        if (empty($linkId)) {
+            $this->logger->critical('Stripe Payment Link ID is missing in settings config.');
+            return null;
+        }
+
+        $baseUrl = 'https://buy.stripe.com/' . ltrim($linkId, '/');
+        
+        $queryParams = http_build_query([
+            'prefilled_email' => $email,
+            'client_reference_id' => $chromeIdentityId
+        ]);
+
+        return $baseUrl . '?' . $queryParams;
+    }
+
+    private function getClientIp(): string
+    {
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+        if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+            $ip = $_SERVER['HTTP_CLIENT_IP'];
+        } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            // Se houver múltiplos IPs no header (proxies), pega o primeiro
+            $ipList = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+            $ip = trim($ipList[0]);
+        }
+        return $ip;
+    }
+
+    private function getCountryCodeFromIp(string $ip): string
+    {
+        // Se for IP local/privado, assumir BR por padrão (útil para dev local)
+        if ($ip === '127.0.0.1' || $ip === '::1' || str_starts_with($ip, '192.168.') || str_starts_with($ip, '10.')) {
+            return 'BR';
+        }
+
+        try {
+            $url = "http://ip-api.com/json/{$ip}?fields=countryCode";
+            $context = stream_context_create([
+                'http' => [
+                    'timeout' => 2.0 // Timeout curto para não travar o checkout
+                ]
+            ]);
+            $response = @file_get_contents($url, false, $context);
+            if ($response) {
+                $data = json_decode($response, true);
+                if (isset($data['countryCode']) && !empty($data['countryCode'])) {
+                    return strtoupper($data['countryCode']);
+                }
+            }
+        } catch (\Throwable $e) {
+            $this->logger->warning('Failed to resolve IP location from ip-api.com', [
+                'ip' => $ip,
+                'error' => $e->getMessage()
+            ]);
+        }
+
+        // Falha segura: assume BR em caso de erro na API de geolocalização
+        return 'BR';
     }
 
     /**
