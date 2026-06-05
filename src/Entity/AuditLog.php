@@ -10,7 +10,7 @@ use App\Repository\AuditLogRepository;
 class AuditLog extends BaseEntity
 {
     #[ORM\ManyToOne(targetEntity: Customer::class, inversedBy: 'auditLogs')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private Customer $customer;
 
     #[ORM\Column(length: 100)]

@@ -36,6 +36,7 @@ class CheckoutController
             exit(0);
         }
 
+        $startTime = microtime(true);
         try {
             $params = $this->captureAndSanitizeInputs();
 
@@ -49,10 +50,15 @@ class CheckoutController
             if ($customer) {
                 $hasActiveLicense = $this->processExistingCustomer($customer, $params['chrome_identity_id']);
                 if ($hasActiveLicense) {
+                    $duration = round((microtime(true) - $startTime) * 1000, 2);
+                    $this->logPerformance('CheckoutController', 'handleRequest', $duration, 'Existing Customer');
                     return;
                 }
             } else {
+                $startCreate = microtime(true);
                 $this->createPreRegisteredCustomer($params['name'], $params['email'], $params['phone'], $params['chrome_identity_id']);
+                $durationCreate = round((microtime(true) - $startCreate) * 1000, 2);
+                $this->logPerformance('CheckoutController', 'createPreRegisteredCustomer', $durationCreate);
             }
 
             $checkoutUrl = $this->generateCheckoutUrl($params['email'], $params['name'], $params['phone']);
@@ -60,6 +66,9 @@ class CheckoutController
                 $this->respondWithError(500, 'Configurações de pagamento ausentes no servidor.');
                 return;
             }
+
+            $duration = round((microtime(true) - $startTime) * 1000, 2);
+            $this->logPerformance('CheckoutController', 'handleRequest', $duration, 'New Checkout');
 
             $this->respondWithJson(200, [
                 'status' => 'pending',
@@ -85,10 +94,13 @@ class CheckoutController
 
     private function findCustomer(string $chromeIdentityId, string $email): ?Customer
     {
+        $startFind = microtime(true);
         $customer = $this->customerRepository->findByChromeIdentityId($chromeIdentityId);
         if (!$customer) {
             $customer = $this->customerRepository->findByEmail($email);
         }
+        $durationFind = round((microtime(true) - $startFind) * 1000, 2);
+        $this->logPerformance('CheckoutController', 'findCustomer', $durationFind);
         return $customer;
     }
 
@@ -218,7 +230,7 @@ class CheckoutController
 
     private function setupCorsHeaders(): void
     {
-        header('Access-Control-Allow-Origin: *');
+
         header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
         header('Access-Control-Allow-Headers: Content-Type, X-Requested-With');
     }
@@ -244,4 +256,24 @@ class CheckoutController
             'trace' => $e->getTraceAsString()
         ]);
     }
+
+    private function logPerformance(string $class, string $method, float $durationMs, string $additionalInfo = ''): void
+    {
+        $threshold = (float)($_ENV['PERFORMANCE_THRESHOLD_MS'] ?? 1000.0);
+        $isAlert = $durationMs > $threshold;
+        $level = $isAlert ? 'error' : 'info';
+        $tag = $isAlert ? '[PERFORMANCE_ALERT]' : '[PERFORMANCE]';
+        
+        $message = "{$tag} {$class}::{$method}" . ($additionalInfo !== '' ? " ({$additionalInfo})" : "") . " took {$durationMs}ms";
+        
+        $this->logger->$level($message, [
+            'type' => 'performance',
+            'class' => $class,
+            'method' => $method,
+            'duration_ms' => $durationMs,
+            'alert' => $isAlert
+        ]);
+    }
 }
+
+

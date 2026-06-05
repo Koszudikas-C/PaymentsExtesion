@@ -19,4 +19,16 @@ class AuditLogTest extends TestCase
         $this->assertEquals('Some details', $log->getDetails());
         $this->assertInstanceOf(\DateTime::class, $log->getDateCreated());
     }
+
+    public function testSetCustomer()
+    {
+        $customer1 = new Customer('Test User 1', 'test1@example.com', '123');
+        $customer2 = new Customer('Test User 2', 'test2@example.com', '456');
+        
+        $log = new AuditLog($customer1, 'TEST_ACTION');
+        $this->assertSame($customer1, $log->getCustomer());
+        
+        $log->setCustomer($customer2);
+        $this->assertSame($customer2, $log->getCustomer());
+    }
 }

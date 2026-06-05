@@ -13,4 +13,15 @@ class AuditLogRepository extends EntityRepository implements AuditLogRepositoryI
         $this->getEntityManager()->persist($log);
         $this->getEntityManager()->flush();
     }
+
+    public function hasPaymentBeenProcessed(string $paymentId): bool
+    {
+        $count = (int) $this->createQueryBuilder('a')
+            ->select('COUNT(a.id)')
+            ->where('a.details LIKE :paymentId')
+            ->setParameter('paymentId', "%$paymentId%")
+            ->getQuery()
+            ->getSingleScalarResult();
+        return $count > 0;
+    }
 }

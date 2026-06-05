@@ -10,6 +10,7 @@ use App\Controllers\CheckoutController;
 use App\Controllers\WebhookController;
 use App\Controllers\ActivationController;
 use App\Controllers\VerificationController;
+use App\Controllers\FeedbackController;
 use App\Controllers\CampaignController;
 use App\Controllers\HealthCheckController;
 use Bramus\Router\Router;
@@ -20,7 +21,13 @@ $dotenv->load();
 
 
 // Configuração Global de CORS e resposta imediata para requisições de preflight (OPTIONS)
-header('Access-Control-Allow-Origin: *');
+$allowedOrigins = isset($_ENV['CORS_ALLOWED_ORIGINS']) ? explode(',', $_ENV['CORS_ALLOWED_ORIGINS']) : ['*'];
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+if (in_array('*', $allowedOrigins) || in_array($origin, $allowedOrigins)) {
+    header('Access-Control-Allow-Origin: ' . ($origin ?: '*'));
+}
+
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, X-Requested-With, Asaas-Access-Token, Authorization');
 header_remove('X-Powered-By');
@@ -50,6 +57,12 @@ $router->match('GET|POST', '/activate', function () use ($container) {
 // Rota de Verificação Ultrarrápida: /verify
 $router->match('GET|POST', '/verify', function () use ($container) {
     $controller = $container->get(VerificationController::class);
+    $controller->handleRequest();
+});
+
+// Rota de Feedback e Novas Funcionalidades: /feedback
+$router->post('/feedback', function () use ($container) {
+    $controller = $container->get(FeedbackController::class);
     $controller->handleRequest();
 });
 

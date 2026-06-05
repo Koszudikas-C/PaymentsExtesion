@@ -43,12 +43,12 @@ class LandingPageSyncService implements LandingPageSyncServiceInterface
             'Content-Type: application/json',
             'Content-Length: ' . strlen($payload)
         ]);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($ch, CURLOPT_TIMEOUT, 5);
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $error = curl_error($ch);
-        curl_close($ch);
 
         if ($error) {
             $log->error('Error sending webhook to LandingPage', ['error' => $error]);

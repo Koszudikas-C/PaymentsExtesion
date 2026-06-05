@@ -25,6 +25,10 @@ class Container
 {
     public static function build(array $definitions = []): ContainerInterface
     {
+        // Define o fuso horário padrão para toda a aplicação (evita divergências de horário)
+        $timezone = $_ENV['APP_TIMEZONE'] ?? 'America/Sao_Paulo';
+        date_default_timezone_set($timezone);
+
         $containerBuilder = new ContainerBuilder();
 
         $baseDefinitions = [
@@ -44,6 +48,8 @@ class Container
                     'username' => $_ENV['MAIL_USER'],
                     'password' => $_ENV['MAIL_PASS'],
                     'port' => $_ENV['MAIL_SMTP_PORT'],
+                    'from' => $_ENV['MAIL_FROM'] ?? $_ENV['MAIL_USER'],
+                    'from_name' => $_ENV['MAIL_FROM_NAME'] ?? 'Exportador Histórico Pro Licença',
                 ],
                 'db' => [
                     'driver'   => $_ENV['DB_DRIVER'],
@@ -140,6 +146,10 @@ class Container
                 return $c->get(\Doctrine\ORM\EntityManagerInterface::class)->getRepository(\App\Entity\AuditLog::class);
             },
 
+            \App\Interfaces\Repositories\FeedbackRepositoryInterface::class => function (ContainerInterface $c) {
+                return $c->get(\Doctrine\ORM\EntityManagerInterface::class)->getRepository(\App\Entity\Feedback::class);
+            },
+
             \App\Interfaces\PromotionServiceInterface::class => \DI\autowire(\App\Services\PromotionService::class)
                 ->constructorParameter('paymentLinkId', \DI\get('settings.asaas.payment_link_id'))
                 ->constructorParameter('monthlyValue', \DI\get('settings.asaas.monthly_value'))
@@ -162,6 +172,8 @@ class Container
             \App\Controllers\WebhookController::class => \DI\autowire(),
 
             \App\Controllers\VerificationController::class => \DI\autowire(),
+
+            \App\Controllers\FeedbackController::class => \DI\autowire(),
 
             \App\Controllers\CampaignController::class => \DI\autowire()
                 ->constructorParameter('target', \DI\get('settings.campaign.target')),

@@ -50,7 +50,7 @@ class DiscordService implements DiscordServiceInterface
         foreach ($fields as $field) {
             $embed['fields'][] = [
                 'name' => $field['name'],
-                'value' => (string)$field['value'],
+                'value' => (string) $field['value'],
                 'inline' => $field['inline'] ?? false
             ];
         }
@@ -70,7 +70,6 @@ class DiscordService implements DiscordServiceInterface
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $error = curl_error($ch);
-        curl_close($ch);
 
         if ($error) {
             error_log('[DiscordService] Error sending REST request: ' . $error);

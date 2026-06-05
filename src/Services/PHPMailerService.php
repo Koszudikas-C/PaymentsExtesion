@@ -16,19 +16,25 @@ class PHPMailerService implements EmailServiceInterface
         $this->config = $config;
     }
 
-    public function sendLicenseEmail(string $to, string $licenseCode, Logger $log, string $customerName = 'Usuário'): bool
+    public function sendLicenseEmail(string $to, string $licenseCode, Logger $log, string $customerName = 'Usuário', string $templateName = 'license_email.html'): bool
     {
         $mail = new PHPMailer(true);
         try {
             // SMTP Config
             $mail->isSMTP();
-            $mail->Host       = $this->config['host'];
-            $mail->SMTPAuth   = true;
-            $mail->Username   = $this->config['username'];
-            $mail->Password   = $this->config['password'];
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-            $mail->Port       = $this->config['port'];
-            $mail->CharSet    = 'UTF-8';
+            $mail->Host = $this->config['host'];
+            $mail->SMTPAuth = true;
+            $mail->Username = $this->config['username'];
+            $mail->Password = $this->config['password'];
+            $mail->Port = $this->config['port'];
+
+            // Define o tipo de criptografia com base na porta
+            if ($mail->Port == 587) {
+                $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            } else {
+                $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+            }
+            $mail->CharSet = 'UTF-8';
 
             $mail->Debugoutput = function ($str, $level) use ($log) {
                 $log->debug("SMTP Detail: " . trim($str));
@@ -43,12 +49,14 @@ class PHPMailerService implements EmailServiceInterface
             ];
 
             // Recipients
-            $mail->setFrom($this->config['username'], 'Exportador Histórico Pro Licença');
+            $fromEmail = $this->config['from'] ?? $this->config['username'];
+            $fromName  = $this->config['from_name'] ?? 'Exportador Histórico Pro Licença';
+            $mail->setFrom($fromEmail, $fromName);
             $mail->addAddress($to);
 
             // Content
-            $templatePath = __DIR__ . '/../../templates/license_email.html';
-            
+            $templatePath = __DIR__ . '/../../templates/' . ltrim($templateName, '/\\');
+
             if (file_exists($templatePath)) {
                 $body = file_get_contents($templatePath);
                 $body = str_replace('{{customer_name}}', $customerName, $body);
@@ -60,7 +68,7 @@ class PHPMailerService implements EmailServiceInterface
 
             $mail->isHTML(true);
             $mail->Subject = 'Seu Acesso Pro Liberado!';
-            $mail->Body    = $body;
+            $mail->Body = $body;
 
             $mail->send();
             return true;

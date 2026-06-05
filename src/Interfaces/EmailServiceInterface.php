@@ -13,5 +13,5 @@ interface EmailServiceInterface
      * @param string $customerName
      * @return bool
      */
-    public function sendLicenseEmail(string $to, string $licenseCode, Logger $log, string $customerName = 'Usuário'): bool;
+    public function sendLicenseEmail(string $to, string $licenseCode, Logger $log, string $customerName = 'Usuário', string $templateName = 'license_email.html'): bool;
 }

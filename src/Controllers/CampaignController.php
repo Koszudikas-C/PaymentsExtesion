@@ -26,7 +26,7 @@ class CampaignController
     public function getStats(): void
     {
         header_remove('X-Powered-By');
-        header('Access-Control-Allow-Origin: *');
+
         header('Access-Control-Allow-Methods: GET, OPTIONS');
         header('Access-Control-Allow-Headers: Content-Type');
         header('Content-Type: application/json; charset=utf-8');
@@ -69,3 +69,4 @@ class CampaignController
         }
     }
 }
+

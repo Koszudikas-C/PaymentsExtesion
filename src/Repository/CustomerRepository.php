@@ -8,6 +8,11 @@ use Doctrine\ORM\EntityRepository;
 
 class CustomerRepository extends EntityRepository implements CustomerRepositoryInterface
 {
+    public function findById(string $id): ?Customer
+    {
+        return $this->find($id);
+    }
+
     public function findByEmail(string $email): ?Customer
     {
         return $this->findOneBy(['email' => $email]);

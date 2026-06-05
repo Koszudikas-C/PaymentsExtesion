@@ -19,6 +19,7 @@ class WebhookProcessorFactory
     {
         switch ($event) {
             case 'PAYMENT_RECEIVED':
+            case 'PAYMENT_CONFIRMED':
                 return $this->container->get(PaymentReceivedProcessor::class);
             // Novos eventos podem ser adicionados aqui
             default:

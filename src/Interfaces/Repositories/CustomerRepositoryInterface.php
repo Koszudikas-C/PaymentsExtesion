@@ -6,6 +6,7 @@ use App\Entity\Customer;
 
 interface CustomerRepositoryInterface
 {
+    public function findById(string $id): ?Customer;
     public function findByEmail(string $email): ?Customer;
     public function findBySubscriptionId(string $subscriptionId): ?Customer;
     public function findByChromeIdentityId(string $chromeIdentityId): ?Customer;

@@ -30,6 +30,7 @@ class ActivationController
             exit(0);
         }
 
+        $startTime = microtime(true);
         try {
             $params = $this->captureAndSanitizeInputs();
 
@@ -45,7 +46,10 @@ class ActivationController
             }
 
             // Busca o cliente pela chave de licença fornecida
+            $startLookup = microtime(true);
             $customer = $this->customerRepository->findByLicenseKey($params['license_key']);
+            $durationLookup = round((microtime(true) - $startLookup) * 1000, 2);
+            $this->logPerformance('CustomerRepository', 'findByLicenseKey', $durationLookup);
 
             if (!$customer || $customer->getEmail() !== $params['email']) {
                 $this->respondWithJson(200, [
@@ -73,16 +77,22 @@ class ActivationController
                 if ($forceReset) {
                     // Transfere a licença para o novo perfil/dispositivo
                     // Primeiro, desvincula o novo chrome_identity_id de qualquer outra licença/cliente para evitar erros de restrição única
+                    $startUnbind = microtime(true);
                     $existingBoundCustomer = $this->customerRepository->findByChromeIdentityId($params['chrome_identity_id']);
                     if ($existingBoundCustomer && $existingBoundCustomer->getId() !== $customer->getId()) {
                         $existingBoundCustomer->setChromeIdentityId(null);
                         $existingBoundCustomer->recordAudit('CHROME_ID_UNBOUND', "Unbound Chrome Identity because it was force-transferred to license: " . $customer->getLicenseKey());
                         $this->customerRepository->save($existingBoundCustomer);
                     }
+                    $durationUnbind = round((microtime(true) - $startUnbind) * 1000, 2);
+                    $this->logPerformance('ActivationController', 'unbindChromeIdentity', $durationUnbind);
 
+                    $startSave = microtime(true);
                     $customer->setChromeIdentityId($params['chrome_identity_id']);
                     $customer->recordAudit('LICENSE_TRANSFERRED', "License transferred to new Chrome Identity: {$params['chrome_identity_id']}");
                     $this->customerRepository->save($customer);
+                    $durationSave = round((microtime(true) - $startSave) * 1000, 2);
+                    $this->logPerformance('CustomerRepository', 'save', $durationSave, 'Force Transfer');
                     
                     $this->logger->info('License transferred to new chrome identity', [
                         'email' => $customer->getEmail(),
@@ -106,6 +116,7 @@ class ActivationController
             // Associa o chrome_identity_id enviado se ainda estiver vazio
             if (empty($savedChromeId)) {
                 // Antes de salvar, verifica se já existe outro cliente associado a esse mesmo chrome_identity_id e o desvincula
+                $startUnbind = microtime(true);
                 $existingBoundCustomer = $this->customerRepository->findByChromeIdentityId($params['chrome_identity_id']);
                 if ($existingBoundCustomer && $existingBoundCustomer->getId() !== $customer->getId()) {
                     $existingBoundCustomer->setChromeIdentityId(null);
@@ -117,14 +128,22 @@ class ActivationController
                         'chrome_identity_id' => $params['chrome_identity_id']
                     ]);
                 }
+                $durationUnbind = round((microtime(true) - $startUnbind) * 1000, 2);
+                $this->logPerformance('ActivationController', 'unbindChromeIdentity', $durationUnbind);
 
+                $startSave = microtime(true);
                 $customer->setChromeIdentityId($params['chrome_identity_id']);
                 $this->customerRepository->save($customer);
+                $durationSave = round((microtime(true) - $startSave) * 1000, 2);
+                $this->logPerformance('CustomerRepository', 'save', $durationSave, 'New Chrome ID');
                 $this->logger->info('Linked new chrome identity to customer license', [
                     'email' => $customer->getEmail(),
                     'chrome_identity_id' => $params['chrome_identity_id']
                 ]);
             }
+
+            $duration = round((microtime(true) - $startTime) * 1000, 2);
+            $this->logPerformance('ActivationController', 'handleRequest', $duration);
 
             $this->respondWithJson(200, [
                 'status' => 'success',
@@ -226,7 +245,7 @@ class ActivationController
 
     private function setupCorsHeaders(): void
     {
-        header('Access-Control-Allow-Origin: *');
+
         header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
         header('Access-Control-Allow-Headers: Content-Type, X-Requested-With');
     }
@@ -252,4 +271,24 @@ class ActivationController
             'trace' => $e->getTraceAsString()
         ]);
     }
+
+    private function logPerformance(string $class, string $method, float $durationMs, string $additionalInfo = ''): void
+    {
+        $threshold = (float)($_ENV['PERFORMANCE_THRESHOLD_MS'] ?? 1000.0);
+        $isAlert = $durationMs > $threshold;
+        $level = $isAlert ? 'error' : 'info';
+        $tag = $isAlert ? '[PERFORMANCE_ALERT]' : '[PERFORMANCE]';
+        
+        $message = "{$tag} {$class}::{$method}" . ($additionalInfo !== '' ? " ({$additionalInfo})" : "") . " took {$durationMs}ms";
+        
+        $this->logger->$level($message, [
+            'type' => 'performance',
+            'class' => $class,
+            'method' => $method,
+            'duration_ms' => $durationMs,
+            'alert' => $isAlert
+        ]);
+    }
 }
+
+

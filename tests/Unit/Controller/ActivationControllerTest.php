@@ -169,6 +169,7 @@ class ActivationControllerTest extends TestCase
 
         $activeCustomer = new Customer('Active User', 'active@example.com', '5511999999999');
         $activeCustomer->markAsPaid('pay_999');
+        $activeCustomer->setPlan('LIFETIME');
         $activeCustomer->assignLicense('lic_key_abc');
         $activeCustomer->setChromeIdentityId('chrome_user_123'); // Already bound to another profile
 
@@ -201,6 +202,7 @@ class ActivationControllerTest extends TestCase
 
         $activeCustomer = new Customer('Active User', 'active@example.com', '5511999999999');
         $activeCustomer->markAsPaid('pay_999');
+        $activeCustomer->setPlan('LIFETIME');
         $activeCustomer->assignLicense('lic_key_abc');
         $activeCustomer->setChromeIdentityId('chrome_user_123'); // Already bound to another profile
 

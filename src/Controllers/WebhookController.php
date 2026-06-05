@@ -59,17 +59,23 @@ class WebhookController
                 'trace' => $e->getTraceAsString()
             ]);
 
-            // FALLBACK: Se o evento era PAYMENT_RECEIVED, salva o payload bruto em um arquivo JSON
-            $isPaymentReceived = false;
+            // FALLBACK: Se o evento era PAYMENT_RECEIVED ou PAYMENT_CONFIRMED, salva o payload bruto em um arquivo JSON
+            $isPaymentEvent = false;
             $payloadToSave = $input ?? '';
             
-            if (isset($data) && is_array($data) && isset($data['event']) && $data['event'] === 'PAYMENT_RECEIVED') {
-                $isPaymentReceived = true;
-            } elseif (isset($payloadToSave) && strpos($payloadToSave, 'PAYMENT_RECEIVED') !== false) {
-                $isPaymentReceived = true;
+            $targetEvents = ['PAYMENT_RECEIVED', 'PAYMENT_CONFIRMED'];
+            if (isset($data) && is_array($data) && isset($data['event']) && in_array($data['event'], $targetEvents)) {
+                $isPaymentEvent = true;
+            } else {
+                foreach ($targetEvents as $target) {
+                    if (isset($payloadToSave) && strpos($payloadToSave, $target) !== false) {
+                        $isPaymentEvent = true;
+                        break;
+                    }
+                }
             }
 
-            if ($isPaymentReceived) {
+            if ($isPaymentEvent) {
                 $this->saveToFallbackFile($e->getMessage(), $data, $payloadToSave);
             }
 

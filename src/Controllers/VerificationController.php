@@ -29,6 +29,7 @@ class VerificationController
             exit(0);
         }
 
+        $startTime = microtime(true);
         try {
             $params = $this->captureAndSanitizeInputs();
 
@@ -45,19 +46,28 @@ class VerificationController
             }
 
             // Primeiro tenta localizar pelo chrome_identity_id
+            $startChromeLookup = microtime(true);
             $customer = $this->customerRepository->findByChromeIdentityId($params['chrome_identity_id']);
+            $durationChromeLookup = round((microtime(true) - $startChromeLookup) * 1000, 2);
+            $this->logPerformance('CustomerRepository', 'findByChromeIdentityId', $durationChromeLookup);
 
             // Se não encontrou e email foi fornecido, tenta buscar pelo email
             if (!$customer && !empty($params['email'])) {
+                $startEmailLookup = microtime(true);
                 $customer = $this->customerRepository->findByEmail($params['email']);
+                $durationEmailLookup = round((microtime(true) - $startEmailLookup) * 1000, 2);
+                $this->logPerformance('CustomerRepository', 'findByEmail', $durationEmailLookup, 'Fallback');
                 
                 if ($customer) {
                     $savedChromeId = $customer->getChromeIdentityId();
                     
                     if (empty($savedChromeId)) {
                         // Se encontrou pelo email mas ainda não há chrome_identity_id associado, vincula agora
+                        $startSave = microtime(true);
                         $customer->setChromeIdentityId($params['chrome_identity_id']);
                         $this->customerRepository->save($customer);
+                        $durationSave = round((microtime(true) - $startSave) * 1000, 2);
+                        $this->logPerformance('CustomerRepository', 'save', $durationSave, 'Auto Link Chrome ID');
                     } elseif ($savedChromeId !== $params['chrome_identity_id']) {
                         // Conflito: O email existe mas está vinculado a outro chrome_identity_id.
                         // A verificação silenciosa deve falhar para não permitir uso duplo.
@@ -79,6 +89,9 @@ class VerificationController
             }
 
             if ($customer->getPaymentStatus() === 'RECEIVED' && $customer->isLicenseActive()) {
+                $duration = round((microtime(true) - $startTime) * 1000, 2);
+                $this->logPerformance('VerificationController', 'handleRequest', $duration, 'Active License');
+
                 $this->respondWithJson(200, [
                     'status' => 'active',
                     'message' => 'Licença ativa e válida.',
@@ -87,6 +100,9 @@ class VerificationController
                 ]);
                 return;
             }
+
+            $duration = round((microtime(true) - $startTime) * 1000, 2);
+            $this->logPerformance('VerificationController', 'handleRequest', $duration, 'Inactive License');
 
             $this->respondWithJson(200, [
                 'status' => 'inactive',
@@ -166,7 +182,7 @@ class VerificationController
 
     private function setupCorsHeaders(): void
     {
-        header('Access-Control-Allow-Origin: *');
+
         header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
         header('Access-Control-Allow-Headers: Content-Type, X-Requested-With');
     }
@@ -192,4 +208,24 @@ class VerificationController
             'trace' => $e->getTraceAsString()
         ]);
     }
+
+    private function logPerformance(string $class, string $method, float $durationMs, string $additionalInfo = ''): void
+    {
+        $threshold = (float)($_ENV['PERFORMANCE_THRESHOLD_MS'] ?? 1000.0);
+        $isAlert = $durationMs > $threshold;
+        $level = $isAlert ? 'error' : 'info';
+        $tag = $isAlert ? '[PERFORMANCE_ALERT]' : '[PERFORMANCE]';
+        
+        $message = "{$tag} {$class}::{$method}" . ($additionalInfo !== '' ? " ({$additionalInfo})" : "") . " took {$durationMs}ms";
+        
+        $this->logger->$level($message, [
+            'type' => 'performance',
+            'class' => $class,
+            'method' => $method,
+            'duration_ms' => $durationMs,
+            'alert' => $isAlert
+        ]);
+    }
 }
+
+

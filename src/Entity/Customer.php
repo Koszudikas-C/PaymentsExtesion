@@ -35,7 +35,7 @@ class Customer extends BaseEntity
     private int $deliveryFailureCount = 0;
 
     #[ORM\Column(length: 20)]
-    private string $plan = 'LIFETIME';
+    private string $plan = 'PENDING';
 
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $subscriptionId = null;
@@ -45,6 +45,9 @@ class Customer extends BaseEntity
 
     #[ORM\Column(length: 255, unique: true, nullable: true)]
     private ?string $chromeIdentityId = null;
+
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $fallbackPlan = null;
 
     #[ORM\OneToMany(mappedBy: 'customer', targetEntity: AuditLog::class, cascade: ['persist', 'remove'])]
     private Collection $auditLogs;
@@ -134,14 +137,38 @@ class Customer extends BaseEntity
     public function getLicenseExpiresAt(): ?\DateTime { return $this->licenseExpiresAt; }
     public function setLicenseExpiresAt(?\DateTime $licenseExpiresAt): void { $this->licenseExpiresAt = $licenseExpiresAt; }
 
+    public function getFallbackPlan(): ?string { return $this->fallbackPlan; }
+    public function setFallbackPlan(?string $fallbackPlan): void { $this->fallbackPlan = $fallbackPlan; }
+
     public function getChromeIdentityId(): ?string { return $this->chromeIdentityId; }
     public function setChromeIdentityId(?string $chromeIdentityId): void { $this->chromeIdentityId = $chromeIdentityId; }
 
     public function isLicenseActive(): bool
     {
+        // Licenças LIFETIME são vitalícias e não expiram
         if ($this->plan === 'LIFETIME') {
             return true;
         }
+        
+        // Licenças dos planos MONTHLY e CO-CREATOR possuem prazo de expiração
+        if ($this->plan === 'MONTHLY' || $this->plan === 'CO-CREATOR') {
+            if ($this->licenseExpiresAt === null) {
+                return false;
+            }
+            if ($this->licenseExpiresAt > new \DateTime('now')) {
+                return true;
+            }
+            // Se expirou e o usuário tinha LIFETIME anteriormente (como fallback):
+            if ($this->fallbackPlan === 'LIFETIME') {
+                $this->plan = 'LIFETIME';
+                $this->subscriptionId = null;
+                $this->licenseExpiresAt = null;
+                $this->recordAudit('PLAN_REVERTED', "Subscription expired. Reverted to previous LIFETIME plan.");
+                return true;
+            }
+            return false;
+        }
+
         if ($this->licenseExpiresAt === null) {
             return false;
         }

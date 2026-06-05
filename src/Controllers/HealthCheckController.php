@@ -9,7 +9,7 @@ class HealthCheckController
     public function check(): void
     {
         header_remove('X-Powered-By');
-        header('Access-Control-Allow-Origin: *');
+
         header('Content-Type: application/json; charset=utf-8');
         
         // Retorna apenas 200 OK com corpo mínimo
@@ -17,3 +17,4 @@ class HealthCheckController
         echo json_encode(['status' => 'ok']);
     }
 }
+
