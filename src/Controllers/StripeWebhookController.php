@@ -37,8 +37,9 @@ class StripeWebhookController
         }
 
         try {
+            // Aumentado a tolerância para 24 horas (86400) devido a dessincronização de relógio no ambiente de desenvolvimento local
             $event = Webhook::constructEvent(
-                $payload, $sigHeader, $endpointSecret
+                $payload, $sigHeader, $endpointSecret, 86400
             );
         } catch (\UnexpectedValueException $e) {
             $this->logger->error('Stripe Webhook: Invalid payload', ['error' => $e->getMessage()]);

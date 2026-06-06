@@ -43,7 +43,7 @@ class Customer extends BaseEntity
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?\DateTime $licenseExpiresAt = null;
 
-    #[ORM\Column(length: 255, unique: true, nullable: true)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $chromeIdentityId = null;
 
     #[ORM\Column(length: 20, nullable: true)]

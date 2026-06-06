@@ -166,7 +166,7 @@ class StripeCheckoutCompletedProcessor implements StripeWebhookProcessorInterfac
 
     private function resolveTargetPlan(float $value, ?string $subscriptionId): string
     {
-        $coCreatorPrice = (float)($_ENV['MONTHLY_VALUE_USD'] ?? 9.99); // Valor em dólar
+        $coCreatorPrice = (float)($_ENV['MONTHLY_VALUE_USD'] ?? 5.99); // Valor em dólar para Co-Creator
         if (abs($value - $coCreatorPrice) < 0.01) {
             return 'CO-CREATOR';
         }

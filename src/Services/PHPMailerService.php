@@ -16,9 +16,14 @@ class PHPMailerService implements EmailServiceInterface
         $this->config = $config;
     }
 
+    protected function createMailer(): PHPMailer
+    {
+        return new PHPMailer(true);
+    }
+
     public function sendLicenseEmail(string $to, string $licenseCode, Logger $log, string $customerName = 'Usuário', string $templateName = 'license_email.html'): bool
     {
-        $mail = new PHPMailer(true);
+        $mail = $this->createMailer();
         try {
             // SMTP Config
             $mail->isSMTP();

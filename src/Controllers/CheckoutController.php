@@ -63,16 +63,24 @@ class CheckoutController
 
             $clientIp = $this->getClientIp();
             $countryCode = $this->getCountryCodeFromIp($clientIp);
-            
+
             // Log do país detectado
             $this->logger->info("Checkout request from IP {$clientIp} resolved to country: {$countryCode}");
 
+            $planType = strtoupper($params['plan'] ?? 'LIFETIME');
+
             if ($countryCode === 'BR') {
-                $checkoutUrl = $this->generateCheckoutUrl($params['email'], $params['name'], $params['phone']);
+                $checkoutUrl = $this->generateCheckoutUrl($params['email'], $params['name'], $params['phone'], $planType);
                 $message = 'Redirecionando para o pagamento seguro no Asaas.';
             } else {
-                $checkoutUrl = $this->generateStripeCheckoutUrl($params['email'], $params['chrome_identity_id']);
+                $checkoutUrl = $this->generateStripeCheckoutUrl($params['email'], $params['chrome_identity_id'], $planType);
                 $message = 'Redirecionando para o pagamento seguro internacional no Stripe.';
+                
+                // Fallback de segurança: Se o Stripe não estiver configurado/vazio, usa o Asaas
+                if (!$checkoutUrl) {
+                    $checkoutUrl = $this->generateCheckoutUrl($params['email'], $params['name'], $params['phone'], $planType);
+                    $message = 'Redirecionando para o pagamento seguro no Asaas.';
+                }
             }
 
             if (!$checkoutUrl) {
@@ -108,10 +116,9 @@ class CheckoutController
     private function findCustomer(string $chromeIdentityId, string $email): ?Customer
     {
         $startFind = microtime(true);
-        $customer = $this->customerRepository->findByChromeIdentityId($chromeIdentityId);
-        if (!$customer) {
-            $customer = $this->customerRepository->findByEmail($email);
-        }
+        // Busca estritamente pelo E-mail, pois ele é a única chave absoluta do cliente.
+        $customer = $this->customerRepository->findByEmail($email);
+
         $durationFind = round((microtime(true) - $startFind) * 1000, 2);
         $this->logPerformance('CheckoutController', 'findCustomer', $durationFind);
         return $customer;
@@ -132,9 +139,8 @@ class CheckoutController
             $this->respondWithJson(200, [
                 'status' => 'active',
                 'plan' => $customer->getPlan(),
-                'licenseKey' => $customer->getLicenseKey(),
                 'expiresAt' => $customer->getLicenseExpiresAt() ? $customer->getLicenseExpiresAt()->format('Y-m-d H:i:s') : null,
-                'message' => 'Você já possui uma licença ativa! Não é necessário comprar novamente.'
+                'message' => 'Você já possui uma licença ativa com este e-mail! Verifique sua caixa de entrada para ver a chave de licença.'
             ]);
             return true;
         }
@@ -150,19 +156,36 @@ class CheckoutController
         return $customer;
     }
 
-    private function generateCheckoutUrl(string $email, string $name, string $phone): ?string
+    private function generateCheckoutUrl(string $email, string $name, string $phone, string $planType): ?string
     {
-        $linkId = $this->settings['asaas']['payment_link_id'] ?? null;
+        $linkId = $planType === 'MONTHLY' || $planType === 'CO-CREATOR'
+            ? ($this->settings['asaas']['payment_link_id_monthly'] ?? null)
+            : ($this->settings['asaas']['payment_link_id_lifetime'] ?? null);
+
         if (empty($linkId)) {
-            $this->logger->critical('Asaas Payment Link ID is missing in settings config.');
+            $linkId = $_ENV['ASAAS_PAYMENT_LINK_ID'] ?? null;
+        }
+
+        if ($linkId && str_contains($linkId, ',')) {
+            $links = explode(',', $linkId);
+            $linkId = $planType === 'MONTHLY' || $planType === 'CO-CREATOR' ? trim($links[1] ?? $links[0]) : trim($links[0]);
+        }
+
+        if (empty($linkId)) {
+            $this->logger->critical("Asaas Payment Link ID for plan {$planType} is missing in settings config.");
             return null;
         }
 
-        $baseLink = $_ENV['ASAAS_PAYMENT_LINK'] ?? 'https://cobranca.asaas.com/c/';
-        if (!str_ends_with($baseLink, '/')) {
-            $baseLink .= '/';
+        if (str_starts_with($linkId, 'http://') || str_starts_with($linkId, 'https://')) {
+            $baseUrl = $linkId;
+        } else {
+            $baseLink = $_ENV['ASAAS_PAYMENT_LINK'] ?? 'https://cobranca.asaas.com/c/';
+            if (!str_ends_with($baseLink, '/')) {
+                $baseLink .= '/';
+            }
+            $baseUrl = $baseLink . ltrim($linkId, '/');
         }
-        $baseUrl = $baseLink . $linkId;
+
         $queryParams = http_build_query([
             'email' => $email,
             'name' => $name,
@@ -172,16 +195,34 @@ class CheckoutController
         return $baseUrl . '?' . $queryParams;
     }
 
-    private function generateStripeCheckoutUrl(string $email, string $chromeIdentityId): ?string
+    private function generateStripeCheckoutUrl(string $email, string $chromeIdentityId, string $planType): ?string
     {
-        $linkId = $_ENV['STRIPE_PAYMENT_LINK_ID'] ?? null;
+        // Pega as variáveis específicas de plano, se existirem
+        $linkId = $planType === 'MONTHLY' || $planType === 'CO-CREATOR'
+            ? ($_ENV['STRIPE_PAYMENT_LINK_ID_MONTHLY'] ?? null)
+            : ($_ENV['STRIPE_PAYMENT_LINK_ID_LIFETIME'] ?? null);
+
         if (empty($linkId)) {
-            $this->logger->critical('Stripe Payment Link ID is missing in settings config.');
+            $linkId = $_ENV['STRIPE_PAYMENT_LINK_ID'] ?? null;
+        }
+
+        if ($linkId && str_contains($linkId, ',')) {
+            $links = explode(',', $linkId);
+            $linkId = $planType === 'MONTHLY' || $planType === 'CO-CREATOR' ? trim($links[1] ?? $links[0]) : trim($links[0]);
+        }
+
+        if (empty($linkId)) {
+            $this->logger->critical("Stripe Payment Link ID for plan {$planType} is missing in config.");
             return null;
         }
 
-        $baseUrl = 'https://buy.stripe.com/' . ltrim($linkId, '/');
-        
+        // Se o usuário colou a URL inteira no .env, não concatena de novo
+        if (str_starts_with($linkId, 'http://') || str_starts_with($linkId, 'https://')) {
+            $baseUrl = $linkId;
+        } else {
+            $baseUrl = 'https://buy.stripe.com/' . ltrim($linkId, '/');
+        }
+
         $queryParams = http_build_query([
             'prefilled_email' => $email,
             'client_reference_id' => $chromeIdentityId
@@ -252,12 +293,14 @@ class CheckoutController
         $rawEmail = $_REQUEST['email'] ?? $input['email'] ?? null;
         $rawName = $_REQUEST['name'] ?? $input['name'] ?? 'Usuário';
         $rawPhone = $_REQUEST['phone'] ?? $input['phone'] ?? 'unknown';
+        $rawPlan = $_REQUEST['plan'] ?? $input['plan'] ?? 'LIFETIME';
 
         return [
             'chrome_identity_id' => $this->sanitizeChromeIdentityId($rawChromeId),
             'email' => $this->sanitizeEmail($rawEmail),
             'name' => $this->sanitizeName($rawName),
-            'phone' => $this->sanitizePhone($rawPhone)
+            'phone' => $this->sanitizePhone($rawPhone),
+            'plan' => strtoupper(trim(strip_tags((string) $rawPlan)))
         ];
     }
 
@@ -276,7 +319,7 @@ class CheckoutController
             return null;
         }
         $email = filter_var($rawEmail, FILTER_SANITIZE_EMAIL);
-        $email = strtolower(trim((string)$email));
+        $email = strtolower(trim((string) $email));
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return null;
         }
@@ -335,13 +378,13 @@ class CheckoutController
 
     private function logPerformance(string $class, string $method, float $durationMs, string $additionalInfo = ''): void
     {
-        $threshold = (float)($_ENV['PERFORMANCE_THRESHOLD_MS'] ?? 1000.0);
+        $threshold = (float) ($_ENV['PERFORMANCE_THRESHOLD_MS'] ?? 1000.0);
         $isAlert = $durationMs > $threshold;
         $level = $isAlert ? 'error' : 'info';
         $tag = $isAlert ? '[PERFORMANCE_ALERT]' : '[PERFORMANCE]';
-        
+
         $message = "{$tag} {$class}::{$method}" . ($additionalInfo !== '' ? " ({$additionalInfo})" : "") . " took {$durationMs}ms";
-        
+
         $this->logger->$level($message, [
             'type' => 'performance',
             'class' => $class,
