@@ -47,8 +47,10 @@ class CheckoutController
 
             $customer = $this->findCustomer($params['chrome_identity_id'], $params['email']);
 
+            $planType = strtoupper($params['plan'] ?? 'LIFETIME');
+
             if ($customer) {
-                $hasActiveLicense = $this->processExistingCustomer($customer, $params['chrome_identity_id']);
+                $hasActiveLicense = $this->processExistingCustomer($customer, $params['chrome_identity_id'], $planType);
                 if ($hasActiveLicense) {
                     $duration = round((microtime(true) - $startTime) * 1000, 2);
                     $this->logPerformance('CheckoutController', 'handleRequest', $duration, 'Existing Customer');
@@ -67,8 +69,17 @@ class CheckoutController
             // Log do país detectado
             $this->logger->info("Checkout request from IP {$clientIp} resolved to country: {$countryCode}");
 
-            $planType = strtoupper($params['plan'] ?? 'LIFETIME');
-
+            // Validação de Vagas da Campanha Vitalícia
+            if ($planType === 'LIFETIME') {
+                $target = (int) ($this->settings['campaign']['target'] ?? 100);
+                $lifetimeCount = $this->customerRepository->countPaidLifetimeCustomers();
+                
+                if ($lifetimeCount >= $target) {
+                    $planType = 'MONTHLY'; // Força fallback para mensal caso esgotado
+                    $this->logger->info("LIFETIME campaign limit reached ({$lifetimeCount}/{$target}). Forcing {$planType} checkout for IP {$clientIp}");
+                }
+            }
+            
             if ($countryCode === 'BR') {
                 $checkoutUrl = $this->generateCheckoutUrl($params['email'], $params['name'], $params['phone'], $planType);
                 $message = 'Redirecionando para o pagamento seguro no Asaas.';
@@ -128,7 +139,7 @@ class CheckoutController
      * Vincula a identidade se necessário e verifica se já possui licença ativa.
      * Retorna true se o cliente possuir licença ativa para encerrar o fluxo de checkout.
      */
-    private function processExistingCustomer(Customer $customer, string $chromeIdentityId): bool
+    private function processExistingCustomer(Customer $customer, string $chromeIdentityId, string $requestedPlan): bool
     {
         if (empty($customer->getChromeIdentityId())) {
             $customer->setChromeIdentityId($chromeIdentityId);
@@ -136,16 +147,37 @@ class CheckoutController
         }
 
         if ($customer->getPaymentStatus() === 'RECEIVED' && $customer->isLicenseActive()) {
-            $this->respondWithJson(200, [
-                'status' => 'active',
-                'plan' => $customer->getPlan(),
-                'expiresAt' => $customer->getLicenseExpiresAt() ? $customer->getLicenseExpiresAt()->format('Y-m-d H:i:s') : null,
-                'message' => 'Você já possui uma licença ativa com este e-mail! Verifique sua caixa de entrada para ver a chave de licença.'
-            ]);
-            return true;
+            $currentPlan = $customer->getPlan() ?: 'LIFETIME';
+            
+            // Se ele já é LIFETIME, ele não precisa comprar mais nada
+            if ($currentPlan === 'LIFETIME') {
+                $this->respondWithActiveLicense($customer);
+                return true;
+            }
+            
+            // Se ele tem um plano temporário (CO-CREATOR ou MONTHLY) e quer o MESMO plano, bloqueia
+            if ($currentPlan === $requestedPlan) {
+                $this->respondWithActiveLicense($customer);
+                return true;
+            }
+            
+            // Se ele quer fazer UPGRADE para LIFETIME, NÃO bloqueamos, deixamos prosseguir!
+            if ($currentPlan !== 'LIFETIME' && $requestedPlan === 'LIFETIME') {
+                return false; 
+            }
         }
 
         return false;
+    }
+
+    private function respondWithActiveLicense(Customer $customer): void
+    {
+        $this->respondWithJson(200, [
+            'status' => 'active',
+            'plan' => $customer->getPlan(),
+            'expiresAt' => $customer->getLicenseExpiresAt() ? $customer->getLicenseExpiresAt()->format('Y-m-d H:i:s') : null,
+            'message' => 'Você já possui uma licença ativa com este e-mail! Verifique sua caixa de entrada para ver a chave de licença.'
+        ]);
     }
 
     private function createPreRegisteredCustomer(string $name, string $email, string $phone, string $chromeIdentityId): Customer

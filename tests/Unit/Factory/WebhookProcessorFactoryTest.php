@@ -27,6 +27,7 @@ class WebhookProcessorFactoryTest extends TestCase
             ->with(PaymentReceivedProcessor::class)
             ->willReturn($processor);
 
+        $this->factory->registerProcessor('PAYMENT_RECEIVED', PaymentReceivedProcessor::class);
         $result = $this->factory->getProcessor('PAYMENT_RECEIVED');
         $this->assertSame($processor, $result);
     }

@@ -218,7 +218,7 @@ class Container
                 return $c->get('settings')['discord']['channel_id'];
             },
             'settings.asaas.payment_link_id' => function (ContainerInterface $c) {
-                return $c->get('settings')['asaas']['payment_link_id'];
+                return $c->get('settings')['asaas']['payment_link_id_lifetime'] ?? '';
             },
             'settings.asaas.monthly_value' => function (ContainerInterface $c) {
                 return $c->get('settings')['asaas']['monthly_value'];

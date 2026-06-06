@@ -9,21 +9,24 @@ use Psr\Container\ContainerInterface;
 class WebhookProcessorFactory
 {
     private ContainerInterface $container;
+    private array $processors = [];
 
     public function __construct(ContainerInterface $container)
     {
         $this->container = $container;
     }
 
+    public function registerProcessor(string $eventType, string $processorClass): void
+    {
+        $this->processors[$eventType] = $processorClass;
+    }
+
     public function getProcessor(string $event): ?WebhookProcessorInterface
     {
-        switch ($event) {
-            case 'PAYMENT_RECEIVED':
-            case 'PAYMENT_CONFIRMED':
-                return $this->container->get(PaymentReceivedProcessor::class);
-            // Novos eventos podem ser adicionados aqui
-            default:
-                return null;
+        if (!isset($this->processors[$event])) {
+            return null;
         }
+
+        return $this->container->get($this->processors[$event]);
     }
 }

@@ -20,7 +20,7 @@ class CheckoutControllerTest extends TestCase
         $this->logger = $this->createMock(Logger::class);
         $this->settings = [
             'asaas' => [
-                'payment_link_id' => 'lnk_abc123'
+                'payment_link_id_lifetime' => 'lnk_abc123'
             ]
         ];
         $_ENV['ASAAS_PAYMENT_LINK'] = 'https://cobranca.asaas.com/c/';
@@ -67,8 +67,8 @@ class CheckoutControllerTest extends TestCase
         $activeCustomer->setPlan('LIFETIME');
 
         $this->customerRepo->expects($this->once())
-            ->method('findByChromeIdentityId')
-            ->with('chrome_user_123')
+            ->method('findByEmail')
+            ->with('active@example.com')
             ->willReturn($activeCustomer);
 
         $controller = new CheckoutController($this->customerRepo, $this->settings, $this->logger);
@@ -92,11 +92,8 @@ class CheckoutControllerTest extends TestCase
             'phone' => '5511888888888'
         ]);
 
-        // Find will return null (not registered yet)
-        $this->customerRepo->expects($this->once())
-            ->method('findByChromeIdentityId')
-            ->with('chrome_new_999')
-            ->willReturn(null);
+        $this->customerRepo->expects($this->never())
+            ->method('findByChromeIdentityId');
 
         $this->customerRepo->expects($this->once())
             ->method('findByEmail')
