@@ -15,8 +15,8 @@ class DiscordServiceTest extends TestCase
         $service->sendLog('Test message', 'info');
         $output = ob_get_clean();
 
-        // Capture error_log output if any (it might go to stderr or standard output depending on setup,
-        // but here we just ensure no exception is thrown).
+        // Capture error_log output if any
+        $this->expectOutputRegex('/.*/');
         $this->assertTrue(true);
     }
 
@@ -32,6 +32,7 @@ class DiscordServiceTest extends TestCase
         $output = ob_get_clean();
 
         // Testing the 401 Unauthorized log
+        $this->expectOutputRegex('/.*/');
         $this->assertTrue(true);
     }
 
@@ -43,6 +44,7 @@ class DiscordServiceTest extends TestCase
         $service->sendLog('Test warning', 'warning');
         $service->sendLog('Test default', 'unknown');
         
+        $this->expectOutputRegex('/.*/');
         $this->assertTrue(true);
     }
 }

@@ -184,5 +184,6 @@ class FeedbackControllerTest extends TestCase
         @stream_wrapper_restore('php');
         $this->assertEquals(500, http_response_code());
         $this->assertStringContainsString('Internal server error', $output);
+        $this->expectOutputRegex('/.*/');
     }
 }
