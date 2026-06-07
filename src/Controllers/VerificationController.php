@@ -26,7 +26,7 @@ class VerificationController
         $this->setupCorsHeaders();
 
         if ($this->isPreflightRequest()) {
-            exit(0);
+            return;
         }
 
         $startTime = microtime(true);

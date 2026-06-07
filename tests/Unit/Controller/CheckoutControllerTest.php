@@ -120,4 +120,241 @@ class CheckoutControllerTest extends TestCase
         $this->assertStringContainsString($_ENV['ASAAS_PAYMENT_LINK'], $response['checkoutUrl']);
         $this->assertStringContainsString('email=new%40example.com', $response['checkoutUrl']);
     }
+
+    public function testHandleRequestUpgradeFromMonthlyToLifetime()
+    {
+        $this->setRequestParams([
+            'chrome_identity_id' => 'chrome_user_123',
+            'email' => 'upgrade@example.com',
+            'plan' => 'LIFETIME'
+        ]);
+
+        $monthlyCustomer = new Customer('Upgrade User', 'upgrade@example.com', '5511999999999');
+        $monthlyCustomer->setChromeIdentityId('chrome_user_123');
+        $monthlyCustomer->markAsPaid('pay_123');
+        $monthlyCustomer->setPlan('MONTHLY');
+        $monthlyCustomer->setLicenseExpiresAt((new \DateTime())->modify('+10 days'));
+
+        $this->customerRepo->method('findByEmail')->willReturn($monthlyCustomer);
+
+        $controller = new CheckoutController($this->customerRepo, $this->settings, $this->logger);
+
+        ob_start();
+        $controller->handleRequest();
+        $output = ob_get_clean();
+
+        $response = json_decode($output, true);
+        $this->assertEquals('pending', $response['status']);
+    }
+
+    public function testHandleRequestCampaignLimitForcesMonthly()
+    {
+        $this->setRequestParams([
+            'chrome_identity_id' => 'chrome_new_999',
+            'email' => 'limit@example.com',
+            'plan' => 'LIFETIME'
+        ]);
+
+        $this->customerRepo->method('findByEmail')->willReturn(null);
+        $this->customerRepo->method('countPaidLifetimeCustomers')->willReturn(100);
+
+        $this->settings['campaign']['target'] = 100;
+        $this->settings['asaas']['payment_link_id_monthly'] = 'lnk_monthly123';
+
+        $controller = new CheckoutController($this->customerRepo, $this->settings, $this->logger);
+
+        ob_start();
+        $controller->handleRequest();
+        $output = ob_get_clean();
+
+        $response = json_decode($output, true);
+        $this->assertEquals('pending', $response['status']);
+        $this->assertStringContainsString('lnk_monthly123', $response['checkoutUrl']);
+    }
+
+    public function testHandleRequestInternationalIpUsesStripe()
+    {
+        $this->setRequestParams([
+            'chrome_identity_id' => 'chrome_new_999',
+            'email' => 'intl@example.com',
+            'plan' => 'LIFETIME'
+        ]);
+
+        $_SERVER['HTTP_X_FORWARDED_FOR'] = '8.8.8.8'; // IP Google dos EUA
+        $_ENV['STRIPE_PAYMENT_LINK_ID_LIFETIME'] = 'plink_stripe_123';
+
+        $this->customerRepo->method('findByEmail')->willReturn(null);
+        $this->customerRepo->method('countPaidLifetimeCustomers')->willReturn(0);
+
+        $controller = new CheckoutController($this->customerRepo, $this->settings, $this->logger);
+
+        ob_start();
+        $controller->handleRequest();
+        $output = ob_get_clean();
+
+        unset($_SERVER['HTTP_X_FORWARDED_FOR']);
+        unset($_ENV['STRIPE_PAYMENT_LINK_ID_LIFETIME']);
+
+        $response = json_decode($output, true);
+        $this->assertEquals('pending', $response['status']);
+        $this->assertStringContainsString('stripe.com', $response['checkoutUrl']);
+    }
+
+    public function testHandleRequestOptions()
+    {
+        $_SERVER['REQUEST_METHOD'] = 'OPTIONS';
+        $controller = new CheckoutController($this->customerRepo, $this->settings, $this->logger);
+
+        ob_start();
+        $controller->handleRequest();
+        $output = ob_get_clean();
+
+        $this->assertEmpty($output);
+        unset($_SERVER['REQUEST_METHOD']);
+    }
+
+    public function testHandleRequestExceptionTriggers500()
+    {
+        $this->setRequestParams([
+            'chrome_identity_id' => 'chrome_new_999',
+            'email' => 'error@example.com'
+        ]);
+
+        $this->customerRepo->method('findByEmail')->willThrowException(new \Exception('DB Error'));
+
+        $controller = new CheckoutController($this->customerRepo, $this->settings, $this->logger);
+
+        ob_start();
+        $controller->handleRequest();
+        $output = ob_get_clean();
+
+        $response = json_decode($output, true);
+        $this->assertEquals('error', $response['status']);
+        $this->assertEquals(500, http_response_code());
+    }
+
+    public function testHandleRequestMissingAsaasLinkReturns500()
+    {
+        $this->setRequestParams([
+            'chrome_identity_id' => 'chrome_new_999',
+            'email' => 'missinglink@example.com'
+        ]);
+
+        $this->settings['asaas']['payment_link_id_lifetime'] = null;
+        unset($_ENV['ASAAS_PAYMENT_LINK_ID']);
+
+        $controller = new CheckoutController($this->customerRepo, $this->settings, $this->logger);
+
+        ob_start();
+        $controller->handleRequest();
+        $output = ob_get_clean();
+
+        $response = json_decode($output, true);
+        $this->assertEquals('error', $response['status']);
+        $this->assertEquals(500, http_response_code());
+    }
+
+    public function testHandleRequestStripeFallbackToAsaas()
+    {
+        $this->setRequestParams([
+            'chrome_identity_id' => 'chrome_new_999',
+            'email' => 'intl@example.com'
+        ]);
+
+        $_SERVER['HTTP_X_FORWARDED_FOR'] = '8.8.8.8'; 
+        // Force Stripe missing
+        unset($_ENV['STRIPE_PAYMENT_LINK_ID_LIFETIME']);
+        unset($_ENV['STRIPE_PAYMENT_LINK_ID']);
+
+        $controller = new CheckoutController($this->customerRepo, $this->settings, $this->logger);
+
+        ob_start();
+        $controller->handleRequest();
+        $output = ob_get_clean();
+
+        unset($_SERVER['HTTP_X_FORWARDED_FOR']);
+
+        $response = json_decode($output, true);
+        $this->assertEquals('pending', $response['status']);
+        $this->assertStringContainsString('cobranca.asaas.com', $response['checkoutUrl']);
+    }
+
+    public function testHandleRequestProcessExistingCustomerSamePlanReturnsActive()
+    {
+        $this->setRequestParams([
+            'chrome_identity_id' => 'chrome_user_123',
+            'email' => 'monthly@example.com',
+            'plan' => 'MONTHLY'
+        ]);
+
+        $monthlyCustomer = new Customer('Same Plan User', 'monthly@example.com', '5511999999999');
+        $monthlyCustomer->setChromeIdentityId('chrome_user_123');
+        $monthlyCustomer->markAsPaid('pay_123');
+        $monthlyCustomer->setPlan('MONTHLY');
+        $monthlyCustomer->setLicenseExpiresAt((new \DateTime())->modify('+10 days'));
+
+        $this->customerRepo->method('findByEmail')->willReturn($monthlyCustomer);
+
+        $controller = new CheckoutController($this->customerRepo, $this->settings, $this->logger);
+
+        ob_start();
+        $controller->handleRequest();
+        $output = ob_get_clean();
+
+        $response = json_decode($output, true);
+        $this->assertEquals('active', $response['status']);
+    }
+
+    public function testHandleRequestStripeWithFullUrl()
+    {
+        $this->setRequestParams([
+            'chrome_identity_id' => 'chrome_new_999',
+            'email' => 'intl2@example.com',
+            'plan' => 'LIFETIME'
+        ]);
+
+        $_SERVER['HTTP_X_FORWARDED_FOR'] = '8.8.8.8'; 
+        $_ENV['STRIPE_PAYMENT_LINK_ID_LIFETIME'] = 'https://buy.stripe.com/full_url_123';
+
+        $this->customerRepo->method('findByEmail')->willReturn(null);
+
+        $controller = new CheckoutController($this->customerRepo, $this->settings, $this->logger);
+
+        ob_start();
+        $controller->handleRequest();
+        $output = ob_get_clean();
+
+        unset($_SERVER['HTTP_X_FORWARDED_FOR']);
+        unset($_ENV['STRIPE_PAYMENT_LINK_ID_LIFETIME']);
+
+        $response = json_decode($output, true);
+        $this->assertEquals('pending', $response['status']);
+        $this->assertStringContainsString('https://buy.stripe.com/full_url_123', $response['checkoutUrl']);
+    }
+
+    public function testHandleRequestAsaasWithFullUrl()
+    {
+        $this->setRequestParams([
+            'chrome_identity_id' => 'chrome_new_999',
+            'email' => 'br@example.com',
+            'plan' => 'LIFETIME'
+        ]);
+
+        $_SERVER['HTTP_X_FORWARDED_FOR'] = '192.168.0.1'; // BR fallback
+        $this->settings['asaas']['payment_link_id_lifetime'] = 'https://custom.asaas.com/pay';
+
+        $this->customerRepo->method('findByEmail')->willReturn(null);
+
+        $controller = new CheckoutController($this->customerRepo, $this->settings, $this->logger);
+
+        ob_start();
+        $controller->handleRequest();
+        $output = ob_get_clean();
+
+        unset($_SERVER['HTTP_X_FORWARDED_FOR']);
+
+        $response = json_decode($output, true);
+        $this->assertEquals('pending', $response['status']);
+        $this->assertStringContainsString('https://custom.asaas.com/pay', $response['checkoutUrl']);
+    }
 }

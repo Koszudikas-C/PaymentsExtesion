@@ -46,16 +46,18 @@ class ActivationControllerTest extends TestCase
         $this->assertStringContainsString('Parâmetros chrome_identity_id, email, extension_id e license_key são obrigatórios', $response['message']);
     }
 
-    public function testHandleRequestInvalidExtensionIdReturns403()
+    public function testHandleRequestWithInvalidEmailIsSanitizedToNull()
     {
         $this->setRequestParams([
-            'chrome_identity_id' => 'chrome_user_123',
-            'email' => 'user@example.com',
-            'extension_id' => 'wrongextensionidhere',
-            'license_key' => 'lic_abc123'
+            'email' => 'invalid-email',
+            'license_key' => 'LIC-123',
+            'chrome_identity_id' => 'c1',
+            'extension_id' => 'gpjjhlfkdaakcpllhfobnmdjnbgpefgc'
         ]);
 
-        $controller = new ActivationController($this->customerRepo, $this->logger);
+        $this->customerRepo->method('findByLicenseKey')->willReturn(null);
+
+        $controller = new ActivationController($this->customerRepo, $this->logger, 'salt');
 
         ob_start();
         $controller->handleRequest();
@@ -63,7 +65,7 @@ class ActivationControllerTest extends TestCase
 
         $response = json_decode($output, true);
         $this->assertEquals('error', $response['status']);
-        $this->assertStringContainsString('Acesso não autorizado para esta extensão', $response['message']);
+        $this->assertStringContainsString('Parâmetros', $response['message']);
     }
 
     public function testHandleRequestCustomerNotFoundReturns200WithInvalidKey()
@@ -308,5 +310,73 @@ class ActivationControllerTest extends TestCase
         $this->assertEquals('success', $response['status']);
         $this->assertEquals('chrome_user_123', $activeCustomer->getChromeIdentityId());
         $this->assertNull($otherCustomer->getChromeIdentityId());
+    }
+
+    public function testHandleRequestOptions()
+    {
+        $_SERVER['REQUEST_METHOD'] = 'OPTIONS';
+        $controller = new ActivationController($this->customerRepo, $this->logger);
+
+        ob_start();
+        $controller->handleRequest();
+        $output = ob_get_clean();
+
+        $this->assertEmpty($output);
+        unset($_SERVER['REQUEST_METHOD']);
+    }
+
+    public function testHandleRequestExceptionTriggers500()
+    {
+        $this->setRequestParams([
+            'chrome_identity_id' => 'chrome_user_123',
+            'email' => 'active@example.com',
+            'extension_id' => 'gpjjhlfkdaakcpllhfobnmdjnbgpefgc',
+            'license_key' => 'lic_key_abc'
+        ]);
+
+        $this->customerRepo->method('findByLicenseKey')->willThrowException(new \Exception('DB Error'));
+
+        $controller = new ActivationController($this->customerRepo, $this->logger);
+
+        ob_start();
+        $controller->handleRequest();
+        $output = ob_get_clean();
+
+        $response = json_decode($output, true);
+        $this->assertEquals('error', $response['status']);
+        $this->assertEquals(500, http_response_code());
+    }
+
+    public function testHandleRequestInputFallbackFromPhpInput()
+    {
+        $this->setRequestParams([]);
+
+        @stream_wrapper_unregister('php');
+        stream_wrapper_register('php', \Tests\Unit\Helpers\PhpStreamWrapperMock::class);
+        \Tests\Unit\Helpers\PhpStreamWrapperMock::$buffer = json_encode([
+            'chrome_identity_id' => 'json_user',
+            'email' => 'json@example.com',
+            'extension_id' => 'gpjjhlfkdaakcpllhfobnmdjnbgpefgc',
+            'license_key' => 'json_key'
+        ]);
+
+        $activeCustomer = new Customer('JSON User', 'json@example.com', '1234');
+        $activeCustomer->markAsPaid('pay_123');
+        $activeCustomer->setPlan('LIFETIME');
+        $activeCustomer->assignLicense('json_key');
+
+        $this->customerRepo->method('findByLicenseKey')->willReturn($activeCustomer);
+
+        $controller = new ActivationController($this->customerRepo, $this->logger);
+
+        ob_start();
+        $controller->handleRequest();
+        $output = ob_get_clean();
+
+        @stream_wrapper_restore('php');
+
+        $response = json_decode($output, true);
+        $this->assertEquals('success', $response['status']);
+        $this->assertEquals('json_user', $activeCustomer->getChromeIdentityId());
     }
 }

@@ -52,4 +52,38 @@ class CampaignControllerTest extends TestCase
         $data = json_decode($output, true);
         $this->assertEquals('error', $data['status']);
     }
+
+    public function testGetStatsOptionsRequest()
+    {
+        $_SERVER['REQUEST_METHOD'] = 'OPTIONS';
+        $controller = new CampaignController($this->repository, $this->logger, 100);
+
+        ob_start();
+        $controller->getStats();
+        $output = ob_get_clean();
+
+        $this->assertEmpty($output);
+        unset($_SERVER['REQUEST_METHOD']);
+    }
+
+    public function testGetStatsException()
+    {
+        $controller = new CampaignController($this->repository, $this->logger, 100);
+
+        $this->repository->expects($this->once())
+            ->method('countPaidLifetimeCustomers')
+            ->willThrowException(new \Exception('DB Error'));
+
+        $this->logger->expects($this->once())
+            ->method('error')
+            ->with($this->stringContains('Error in CampaignController::getStats'));
+
+        ob_start();
+        $controller->getStats();
+        $output = ob_get_clean();
+
+        $data = json_decode($output, true);
+        $this->assertEquals('error', $data['status']);
+        $this->assertEquals(500, http_response_code());
+    }
 }

@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <title>Dashboard for D:\Project AIFreelas\Extension\Payments\src</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="_css/bootstrap.min.css?v=14.1.8" rel="stylesheet" type="text/css">
+  <link href="_css/style.css?v=14.1.8" rel="stylesheet" type="text/css">
+  <link href="_css/custom.css" rel="stylesheet" type="text/css">
+ </head>
+ <body>
+  <header>
+   <div class="container-fluid">
+    <div class="row">
+     <div class="col-md-12">
+      <nav aria-label="breadcrumb">
+       <ol class="breadcrumb">
+         <li class="breadcrumb-item"><a href="index.html">D:\Project AIFreelas\Extension\Payments\src</a></li>
+         <li class="breadcrumb-item active">(Dashboard)</li>
+
+       </ol>
+      </nav>
+     </div>
+    </div>
+   </div>
+  </header>
+  <div class="container-fluid">
+   <div class="row dashboard-row">
+    <div class="col-md-6">
+     <h3>Classes</h3>
+     <p class="text-muted small">Bubble size = executable lines. Hover for details, click to navigate.</p>
+     <div class="file-coverage-chart">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid meet">
+ <style>
+  .bubble-success { fill: var(--phpunit-success-bar); opacity: 0.7; }
+  .bubble-warning { fill: var(--phpunit-warning-bar); opacity: 0.7; }
+  .bubble-danger { fill: var(--phpunit-danger-bar); opacity: 0.7; }
+  .bubble-success:hover, .bubble-warning:hover, .bubble-danger:hover { opacity: 1; stroke: var(--bs-emphasis-color); stroke-width: 1.5; }
+  .chart-grid { stroke: var(--bs-border-color); stroke-width: 0.5; stroke-dasharray: 4,4; opacity: 0.5; }
+  .chart-axis { stroke: var(--bs-border-color); stroke-width: 1; }
+  .chart-label { fill: var(--bs-body-color); font-size: 11px; font-family: var(--bs-font-sans-serif, sans-serif); }
+  .chart-title { fill: var(--bs-body-color); font-size: 12px; font-family: var(--bs-font-sans-serif, sans-serif); }
+ </style>
+ <line x1="60.0" y1="20" x2="60.0" y2="350" class="chart-grid"/>
+ <text x="60.0" y="368" text-anchor="middle" class="chart-label">0%</text>
+ <line x1="204.0" y1="20" x2="204.0" y2="350" class="chart-grid"/>
+ <text x="204.0" y="368" text-anchor="middle" class="chart-label">20%</text>
+ <line x1="348.0" y1="20" x2="348.0" y2="350" class="chart-grid"/>
+ <text x="348.0" y="368" text-anchor="middle" class="chart-label">40%</text>
+ <line x1="492.0" y1="20" x2="492.0" y2="350" class="chart-grid"/>
+ <text x="492.0" y="368" text-anchor="middle" class="chart-label">60%</text>
+ <line x1="636.0" y1="20" x2="636.0" y2="350" class="chart-grid"/>
+ <text x="636.0" y="368" text-anchor="middle" class="chart-label">80%</text>
+ <line x1="780.0" y1="20" x2="780.0" y2="350" class="chart-grid"/>
+ <text x="780.0" y="368" text-anchor="middle" class="chart-label">100%</text>
+ <line x1="60" y1="350.0" x2="780" y2="350.0" class="chart-grid"/>
+ <text x="52" y="350.0" text-anchor="end" dominant-baseline="middle" class="chart-label">0</text>
+ <line x1="60" y1="284.0" x2="780" y2="284.0" class="chart-grid"/>
+ <text x="52" y="284.0" text-anchor="end" dominant-baseline="middle" class="chart-label">20</text>
+ <line x1="60" y1="218.0" x2="780" y2="218.0" class="chart-grid"/>
+ <text x="52" y="218.0" text-anchor="end" dominant-baseline="middle" class="chart-label">40</text>
+ <line x1="60" y1="152.0" x2="780" y2="152.0" class="chart-grid"/>
+ <text x="52" y="152.0" text-anchor="end" dominant-baseline="middle" class="chart-label">60</text>
+ <line x1="60" y1="86.0" x2="780" y2="86.0" class="chart-grid"/>
+ <text x="52" y="86.0" text-anchor="end" dominant-baseline="middle" class="chart-label">80</text>
+ <line x1="60" y1="20.0" x2="780" y2="20.0" class="chart-grid"/>
+ <text x="52" y="20.0" text-anchor="end" dominant-baseline="middle" class="chart-label">100</text>
+ <line x1="60" y1="20" x2="60" y2="350" class="chart-axis"/>
+ <line x1="60" y1="350" x2="780" y2="350" class="chart-axis"/>
+ <text x="420.0" y="395" text-anchor="middle" class="chart-title">Line Coverage (%)</text>
+ <text x="15" y="185.0" text-anchor="middle" transform="rotate(-90, 15, 185.0)" class="chart-title">Cyclomatic Complexity</text>
+ <a href="Handlers/Processors/PaymentReceivedProcessor.php.html#16"><circle cx="721.6" cy="115.7" r="20.0" class="bubble-success"><title>App\Handlers\Processors\PaymentReceivedProcessor — Coverage: 91.9% | Lines: 259 | Complexity: 71</title></circle></a>
+ <a href="Controllers/CheckoutController.php.html#11"><circle cx="713.0" cy="62.9" r="18.2" class="bubble-success"><title>App\Controllers\CheckoutController — Coverage: 90.7% | Lines: 215 | Complexity: 87</title></circle></a>
+ <a href="Controllers/ActivationController.php.html#11"><circle cx="744.7" cy="191.6" r="15.9" class="bubble-success"><title>App\Controllers\ActivationController — Coverage: 95.1% | Lines: 163 | Complexity: 48</title></circle></a>
+ <a href="Controllers/VerificationController.php.html#10"><circle cx="767.9" cy="221.3" r="13.6" class="bubble-success"><title>App\Controllers\VerificationController — Coverage: 98.3% | Lines: 119 | Complexity: 39</title></circle></a>
+ <a href="Handlers/Processors/StripeCheckoutCompletedProcessor.php.html#17"><circle cx="647.8" cy="224.6" r="12.3" class="bubble-warning"><title>App\Handlers\Processors\StripeCheckoutCompletedProcessor — Coverage: 81.6% | Lines: 98 | Complexity: 38</title></circle></a>
+ <a href="Controllers/WebhookController.php.html#10"><circle cx="665.2" cy="257.6" r="10.3" class="bubble-warning"><title>App\Controllers\WebhookController — Coverage: 84.1% | Lines: 69 | Complexity: 28</title></circle></a>
+ <a href="Controllers/FeedbackController.php.html#11"><circle cx="768.9" cy="290.6" r="10.0" class="bubble-success"><title>App\Controllers\FeedbackController — Coverage: 98.5% | Lines: 65 | Complexity: 18</title></circle></a>
+ <a href="Entity/Customer.php.html#14"><circle cx="768.4" cy="208.1" r="9.8" class="bubble-success"><title>App\Entity\Customer — Coverage: 98.4% | Lines: 62 | Complexity: 43</title></circle></a>
+ <a href="Services/AsaasService.php.html#8"><circle cx="780.0" cy="326.9" r="8.9" class="bubble-success"><title>App\Services\AsaasService — Coverage: 100.0% | Lines: 51 | Complexity: 7</title></circle></a>
+ <a href="Services/DiscordService.php.html#7"><circle cx="746.5" cy="313.7" r="8.1" class="bubble-success"><title>App\Services\DiscordService — Coverage: 95.3% | Lines: 43 | Complexity: 11</title></circle></a>
+ <a href="Services/PHPMailerService.php.html#10"><circle cx="762.9" cy="330.2" r="8.1" class="bubble-success"><title>App\Services\PHPMailerService — Coverage: 97.6% | Lines: 42 | Complexity: 6</title></circle></a>
+ <a href="Controllers/CampaignController.php.html#10"><circle cx="780.0" cy="333.5" r="7.2" class="bubble-success"><title>App\Controllers\CampaignController — Coverage: 100.0% | Lines: 34 | Complexity: 5</title></circle></a>
+ <a href="Controllers/StripeWebhookController.php.html#12"><circle cx="714.5" cy="330.2" r="7.1" class="bubble-success"><title>App\Controllers\StripeWebhookController — Coverage: 90.9% | Lines: 33 | Complexity: 6</title></circle></a>
+ <a href="Services/LandingPageSyncService.php.html#9"><circle cx="780.0" cy="336.8" r="6.9" class="bubble-success"><title>App\Services\LandingPageSyncService — Coverage: 100.0% | Lines: 31 | Complexity: 4</title></circle></a>
+ <a href="Entity/BaseEntity.php.html#9"><circle cx="780.0" cy="317.0" r="6.3" class="bubble-success"><title>App\Entity\BaseEntity — Coverage: 100.0% | Lines: 26 | Complexity: 10</title></circle></a>
+ <a href="Services/PromotionService.php.html#11"><circle cx="780.0" cy="323.6" r="6.1" class="bubble-success"><title>App\Services\PromotionService — Coverage: 100.0% | Lines: 24 | Complexity: 8</title></circle></a>
+ <a href="Services/DiscordLogHandler.php.html#10"><circle cx="780.0" cy="333.5" r="5.3" class="bubble-success"><title>App\Services\DiscordLogHandler — Coverage: 100.0% | Lines: 18 | Complexity: 5</title></circle></a>
+ <a href="Repository/CustomerRepository.php.html#9"><circle cx="780.0" cy="323.6" r="5.0" class="bubble-success"><title>App\Repository\CustomerRepository — Coverage: 100.0% | Lines: 16 | Complexity: 8</title></circle></a>
+ <a href="Entity/Feedback.php.html#11"><circle cx="780.0" cy="330.2" r="4.0" class="bubble-success"><title>App\Entity\Feedback — Coverage: 100.0% | Lines: 10 | Complexity: 6</title></circle></a>
+ <a href="Repository/AuditLogRepository.php.html#9"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Repository\AuditLogRepository — Coverage: 100.0% | Lines: 9 | Complexity: 2</title></circle></a>
+ <a href="Entity/AuditLog.php.html#10"><circle cx="780.0" cy="333.5" r="4.0" class="bubble-success"><title>App\Entity\AuditLog — Coverage: 100.0% | Lines: 8 | Complexity: 5</title></circle></a>
+ <a href="Handlers/WebhookHandler.php.html#8"><circle cx="780.0" cy="340.1" r="4.0" class="bubble-success"><title>App\Handlers\WebhookHandler — Coverage: 100.0% | Lines: 7 | Complexity: 3</title></circle></a>
+ <a href="Handlers/StripeWebhookHandler.php.html#9"><circle cx="780.0" cy="340.1" r="4.0" class="bubble-success"><title>App\Handlers\StripeWebhookHandler — Coverage: 100.0% | Lines: 6 | Complexity: 3</title></circle></a>
+ <a href="Factories/StripeWebhookProcessorFactory.php.html#8"><circle cx="780.0" cy="336.8" r="4.0" class="bubble-success"><title>App\Factories\StripeWebhookProcessorFactory — Coverage: 100.0% | Lines: 5 | Complexity: 4</title></circle></a>
+ <a href="Factories/WebhookProcessorFactory.php.html#9"><circle cx="780.0" cy="336.8" r="4.0" class="bubble-success"><title>App\Factories\WebhookProcessorFactory — Coverage: 100.0% | Lines: 5 | Complexity: 4</title></circle></a>
+ <a href="Controllers/HealthCheckController.php.html#7"><circle cx="780.0" cy="346.7" r="4.0" class="bubble-success"><title>App\Controllers\HealthCheckController — Coverage: 100.0% | Lines: 4 | Complexity: 1</title></circle></a>
+ <a href="Repository/FeedbackRepository.php.html#9"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Repository\FeedbackRepository — Coverage: 100.0% | Lines: 3 | Complexity: 2</title></circle></a>
+ <a href="Services/LicenseService.php.html#7"><circle cx="780.0" cy="346.7" r="4.0" class="bubble-success"><title>App\Services\LicenseService — Coverage: 100.0% | Lines: 2 | Complexity: 1</title></circle></a>
+</svg>
+     </div>
+    </div>
+    <div class="col-md-6 dashboard-column">
+     <h3>&nbsp;</h3>
+     <p class="text-muted small">Sorted by descending CRAP (Change Risk Anti-Patterns) index.</p>
+     <div class="scrollbox">
+<table class="table">
+ <thead>
+  <tr>
+   <th>Class</th>
+   <th class="text-right"><abbr title="Change Risk Anti-Patterns (CRAP) Index">CRAP</abbr></th>
+   <th class="text-right">Coverage</th>
+  </tr>
+ </thead>
+ <tbody>
+  <tr><td><a href="Controllers/CheckoutController.php.html#11">App\Controllers\CheckoutController</a></td><td class="text-right">93.09</td><td class="text-right">90.7%</td></tr>
+  <tr><td><a href="Handlers/Processors/PaymentReceivedProcessor.php.html#16">App\Handlers\Processors\PaymentReceivedProcessor</a></td><td class="text-right">73.69</td><td class="text-right">91.9%</td></tr>
+  <tr><td><a href="Controllers/ActivationController.php.html#11">App\Controllers\ActivationController</a></td><td class="text-right">48</td><td class="text-right">95.1%</td></tr>
+  <tr><td><a href="Handlers/Processors/StripeCheckoutCompletedProcessor.php.html#17">App\Handlers\Processors\StripeCheckoutCompletedProcessor</a></td><td class="text-right">46.95</td><td class="text-right">81.6%</td></tr>
+  <tr><td><a href="Entity/Customer.php.html#14">App\Entity\Customer</a></td><td class="text-right">43</td><td class="text-right">98.4%</td></tr>
+  <tr><td><a href="Controllers/VerificationController.php.html#10">App\Controllers\VerificationController</a></td><td class="text-right">39</td><td class="text-right">98.3%</td></tr>
+  <tr><td><a href="Controllers/WebhookController.php.html#10">App\Controllers\WebhookController</a></td><td class="text-right">31.18</td><td class="text-right">84.1%</td></tr>
+  <tr><td><a href="Controllers/FeedbackController.php.html#11">App\Controllers\FeedbackController</a></td><td class="text-right">18</td><td class="text-right">98.5%</td></tr>
+  <tr><td><a href="Services/DiscordService.php.html#7">App\Services\DiscordService</a></td><td class="text-right">11</td><td class="text-right">95.3%</td></tr>
+  <tr><td><a href="Entity/BaseEntity.php.html#9">App\Entity\BaseEntity</a></td><td class="text-right">10</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Repository/CustomerRepository.php.html#9">App\Repository\CustomerRepository</a></td><td class="text-right">8</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Services/PromotionService.php.html#11">App\Services\PromotionService</a></td><td class="text-right">8</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Services/AsaasService.php.html#8">App\Services\AsaasService</a></td><td class="text-right">7</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/StripeWebhookController.php.html#12">App\Controllers\StripeWebhookController</a></td><td class="text-right">6.03</td><td class="text-right">90.9%</td></tr>
+  <tr><td><a href="Entity/Feedback.php.html#11">App\Entity\Feedback</a></td><td class="text-right">6</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Services/PHPMailerService.php.html#10">App\Services\PHPMailerService</a></td><td class="text-right">6</td><td class="text-right">97.6%</td></tr>
+  <tr><td><a href="Controllers/CampaignController.php.html#10">App\Controllers\CampaignController</a></td><td class="text-right">5</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/AuditLog.php.html#10">App\Entity\AuditLog</a></td><td class="text-right">5</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Services/DiscordLogHandler.php.html#10">App\Services\DiscordLogHandler</a></td><td class="text-right">5</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Factories/StripeWebhookProcessorFactory.php.html#8">App\Factories\StripeWebhookProcessorFactory</a></td><td class="text-right">4</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Factories/WebhookProcessorFactory.php.html#9">App\Factories\WebhookProcessorFactory</a></td><td class="text-right">4</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Services/LandingPageSyncService.php.html#9">App\Services\LandingPageSyncService</a></td><td class="text-right">4</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Handlers/StripeWebhookHandler.php.html#9">App\Handlers\StripeWebhookHandler</a></td><td class="text-right">3</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Handlers/WebhookHandler.php.html#8">App\Handlers\WebhookHandler</a></td><td class="text-right">3</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Repository/AuditLogRepository.php.html#9">App\Repository\AuditLogRepository</a></td><td class="text-right">2</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Repository/FeedbackRepository.php.html#9">App\Repository\FeedbackRepository</a></td><td class="text-right">2</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/HealthCheckController.php.html#7">App\Controllers\HealthCheckController</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Services/LicenseService.php.html#7">App\Services\LicenseService</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+ </tbody>
+</table>
+     </div>
+    </div>
+   </div>
+   <div class="row dashboard-row">
+    <div class="col-md-6">
+     <h3>Methods</h3>
+     <p class="text-muted small">Bubble size = executable lines. Hover for details, click to navigate.</p>
+     <div class="file-coverage-chart">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid meet">
+ <style>
+  .bubble-success { fill: var(--phpunit-success-bar); opacity: 0.7; }
+  .bubble-warning { fill: var(--phpunit-warning-bar); opacity: 0.7; }
+  .bubble-danger { fill: var(--phpunit-danger-bar); opacity: 0.7; }
+  .bubble-success:hover, .bubble-warning:hover, .bubble-danger:hover { opacity: 1; stroke: var(--bs-emphasis-color); stroke-width: 1.5; }
+  .chart-grid { stroke: var(--bs-border-color); stroke-width: 0.5; stroke-dasharray: 4,4; opacity: 0.5; }
+  .chart-axis { stroke: var(--bs-border-color); stroke-width: 1; }
+  .chart-label { fill: var(--bs-body-color); font-size: 11px; font-family: var(--bs-font-sans-serif, sans-serif); }
+  .chart-title { fill: var(--bs-body-color); font-size: 12px; font-family: var(--bs-font-sans-serif, sans-serif); }
+ </style>
+ <line x1="60.0" y1="20" x2="60.0" y2="350" class="chart-grid"/>
+ <text x="60.0" y="368" text-anchor="middle" class="chart-label">0%</text>
+ <line x1="204.0" y1="20" x2="204.0" y2="350" class="chart-grid"/>
+ <text x="204.0" y="368" text-anchor="middle" class="chart-label">20%</text>
+ <line x1="348.0" y1="20" x2="348.0" y2="350" class="chart-grid"/>
+ <text x="348.0" y="368" text-anchor="middle" class="chart-label">40%</text>
+ <line x1="492.0" y1="20" x2="492.0" y2="350" class="chart-grid"/>
+ <text x="492.0" y="368" text-anchor="middle" class="chart-label">60%</text>
+ <line x1="636.0" y1="20" x2="636.0" y2="350" class="chart-grid"/>
+ <text x="636.0" y="368" text-anchor="middle" class="chart-label">80%</text>
+ <line x1="780.0" y1="20" x2="780.0" y2="350" class="chart-grid"/>
+ <text x="780.0" y="368" text-anchor="middle" class="chart-label">100%</text>
+ <line x1="60" y1="350.0" x2="780" y2="350.0" class="chart-grid"/>
+ <text x="52" y="350.0" text-anchor="end" dominant-baseline="middle" class="chart-label">0</text>
+ <line x1="60" y1="284.0" x2="780" y2="284.0" class="chart-grid"/>
+ <text x="52" y="284.0" text-anchor="end" dominant-baseline="middle" class="chart-label">10</text>
+ <line x1="60" y1="218.0" x2="780" y2="218.0" class="chart-grid"/>
+ <text x="52" y="218.0" text-anchor="end" dominant-baseline="middle" class="chart-label">20</text>
+ <line x1="60" y1="152.0" x2="780" y2="152.0" class="chart-grid"/>
+ <text x="52" y="152.0" text-anchor="end" dominant-baseline="middle" class="chart-label">30</text>
+ <line x1="60" y1="86.0" x2="780" y2="86.0" class="chart-grid"/>
+ <text x="52" y="86.0" text-anchor="end" dominant-baseline="middle" class="chart-label">40</text>
+ <line x1="60" y1="20.0" x2="780" y2="20.0" class="chart-grid"/>
+ <text x="52" y="20.0" text-anchor="end" dominant-baseline="middle" class="chart-label">50</text>
+ <line x1="60" y1="20" x2="60" y2="350" class="chart-axis"/>
+ <line x1="60" y1="350" x2="780" y2="350" class="chart-axis"/>
+ <text x="420.0" y="395" text-anchor="middle" class="chart-title">Line Coverage (%)</text>
+ <text x="15" y="185.0" text-anchor="middle" transform="rotate(-90, 15, 185.0)" class="chart-title">Cyclomatic Complexity</text>
+ <a href="Handlers/Processors/PaymentReceivedProcessor.php.html#50"><circle cx="714.9" cy="53.0" r="20.0" class="bubble-success"><title>App\Handlers\Processors\PaymentReceivedProcessor::process — Coverage: 91.0% | Lines: 166 | Complexity: 45</title></circle></a>
+ <a href="Controllers/ActivationController.php.html#24"><circle cx="735.0" cy="231.2" r="15.2" class="bubble-success"><title>App\Controllers\ActivationController::handleRequest — Coverage: 93.8% | Lines: 96 | Complexity: 18</title></circle></a>
+ <a href="Handlers/Processors/StripeCheckoutCompletedProcessor.php.html#48"><circle cx="624.3" cy="171.8" r="13.4" class="bubble-warning"><title>App\Handlers\Processors\StripeCheckoutCompletedProcessor::process — Coverage: 78.4% | Lines: 74 | Complexity: 27</title></circle></a>
+ <a href="Controllers/VerificationController.php.html#23"><circle cx="780.0" cy="251.0" r="12.1" class="bubble-success"><title>App\Controllers\VerificationController::handleRequest — Coverage: 100.0% | Lines: 61 | Complexity: 15</title></circle></a>
+ <a href="Controllers/CheckoutController.php.html#30"><circle cx="780.0" cy="277.4" r="11.1" class="bubble-success"><title>App\Controllers\CheckoutController::handleRequest — Coverage: 100.0% | Lines: 51 | Complexity: 11</title></circle></a>
+ <a href="Controllers/FeedbackController.php.html#27"><circle cx="780.0" cy="277.4" r="10.5" class="bubble-success"><title>App\Controllers\FeedbackController::handleRequest — Coverage: 100.0% | Lines: 46 | Complexity: 11</title></circle></a>
+ <a href="Controllers/WebhookController.php.html#21"><circle cx="762.0" cy="244.4" r="9.8" class="bubble-success"><title>App\Controllers\WebhookController::handleRequest — Coverage: 97.5% | Lines: 40 | Complexity: 16</title></circle></a>
+ <a href="Services/PHPMailerService.php.html#24"><circle cx="762.0" cy="323.6" r="9.8" class="bubble-success"><title>App\Services\PHPMailerService::sendLicenseEmail — Coverage: 97.5% | Lines: 40 | Complexity: 4</title></circle></a>
+ <a href="Services/DiscordService.php.html#29"><circle cx="740.0" cy="310.4" r="9.3" class="bubble-success"><title>App\Services\DiscordService::sendEmbed — Coverage: 94.4% | Lines: 36 | Complexity: 6</title></circle></a>
+ <a href="Controllers/CampaignController.php.html#26"><circle cx="780.0" cy="323.6" r="8.6" class="bubble-success"><title>App\Controllers\CampaignController::getStats — Coverage: 100.0% | Lines: 31 | Complexity: 4</title></circle></a>
+ <a href="Controllers/StripeWebhookController.php.html#23"><circle cx="710.3" cy="317.0" r="8.6" class="bubble-success"><title>App\Controllers\StripeWebhookController::handleRequest — Coverage: 90.3% | Lines: 31 | Complexity: 5</title></circle></a>
+ <a href="Services/AsaasService.php.html#49"><circle cx="780.0" cy="330.2" r="8.6" class="bubble-success"><title>App\Services\AsaasService::updatePaymentLinkToMonthly — Coverage: 100.0% | Lines: 31 | Complexity: 3</title></circle></a>
+ <a href="Services/LandingPageSyncService.php.html#18"><circle cx="780.0" cy="330.2" r="8.5" class="bubble-success"><title>App\Services\LandingPageSyncService::notifySale — Coverage: 100.0% | Lines: 30 | Complexity: 3</title></circle></a>
+ <a href="Handlers/Processors/PaymentReceivedProcessor.php.html#316"><circle cx="696.9" cy="310.4" r="7.9" class="bubble-warning"><title>App\Handlers\Processors\PaymentReceivedProcessor::saveToFallbackFile — Coverage: 88.5% | Lines: 26 | Complexity: 6</title></circle></a>
+ <a href="Handlers/Processors/PaymentReceivedProcessor.php.html#381"><circle cx="720.0" cy="317.0" r="7.6" class="bubble-success"><title>App\Handlers\Processors\PaymentReceivedProcessor::logDoublePayment — Coverage: 91.7% | Lines: 24 | Complexity: 5</title></circle></a>
+ <a href="Controllers/CheckoutController.php.html#191"><circle cx="686.1" cy="270.8" r="7.4" class="bubble-warning"><title>App\Controllers\CheckoutController::generateCheckoutUrl — Coverage: 87.0% | Lines: 23 | Complexity: 12</title></circle></a>
+ <a href="Controllers/WebhookController.php.html#87"><circle cx="600.0" cy="303.8" r="6.9" class="bubble-warning"><title>App\Controllers\WebhookController::saveToFallbackFile — Coverage: 75.0% | Lines: 20 | Complexity: 7</title></circle></a>
+ <a href="Controllers/CheckoutController.php.html#230"><circle cx="666.3" cy="277.4" r="6.8" class="bubble-warning"><title>App\Controllers\CheckoutController::generateStripeCheckoutUrl — Coverage: 84.2% | Lines: 19 | Complexity: 11</title></circle></a>
+ <a href="Controllers/CheckoutController.php.html#279"><circle cx="552.6" cy="290.6" r="6.8" class="bubble-warning"><title>App\Controllers\CheckoutController::getCountryCodeFromIp — Coverage: 68.4% | Lines: 19 | Complexity: 9</title></circle></a>
+ <a href="Services/PromotionService.php.html#33"><circle cx="780.0" cy="303.8" r="6.8" class="bubble-success"><title>App\Services\PromotionService::handlePromotionGoal — Coverage: 100.0% | Lines: 19 | Complexity: 7</title></circle></a>
+ <a href="Entity/Customer.php.html#146"><circle cx="737.6" cy="297.2" r="6.4" class="bubble-success"><title>App\Entity\Customer::isLicenseActive — Coverage: 94.1% | Lines: 17 | Complexity: 8</title></circle></a>
+ <a href="Services/AsaasService.php.html#21"><circle cx="780.0" cy="330.2" r="6.4" class="bubble-success"><title>App\Services\AsaasService::getCustomerInfo — Coverage: 100.0% | Lines: 17 | Complexity: 3</title></circle></a>
+ <a href="Controllers/ActivationController.php.html#181"><circle cx="735.0" cy="317.0" r="6.2" class="bubble-success"><title>App\Controllers\ActivationController::captureAndSanitizeInputs — Coverage: 93.8% | Lines: 16 | Complexity: 5</title></circle></a>
+ <a href="Controllers/CheckoutController.php.html#315"><circle cx="735.0" cy="317.0" r="6.2" class="bubble-success"><title>App\Controllers\CheckoutController::captureAndSanitizeInputs — Coverage: 93.8% | Lines: 16 | Complexity: 5</title></circle></a>
+ <a href="Controllers/FeedbackController.php.html#95"><circle cx="735.0" cy="310.4" r="6.2" class="bubble-success"><title>App\Controllers\FeedbackController::sendDiscordNotification — Coverage: 93.8% | Lines: 16 | Complexity: 6</title></circle></a>
+ <a href="Handlers/Processors/PaymentReceivedProcessor.php.html#353"><circle cx="735.0" cy="303.8" r="6.2" class="bubble-success"><title>App\Handlers\Processors\PaymentReceivedProcessor::attemptLicenseDelivery — Coverage: 93.8% | Lines: 16 | Complexity: 7</title></circle></a>
+ <a href="Services/DiscordLogHandler.php.html#20"><circle cx="780.0" cy="323.6" r="6.2" class="bubble-success"><title>App\Services\DiscordLogHandler::write — Coverage: 100.0% | Lines: 16 | Complexity: 4</title></circle></a>
+ <a href="Controllers/CheckoutController.php.html#142"><circle cx="625.7" cy="290.6" r="5.8" class="bubble-warning"><title>App\Controllers\CheckoutController::processExistingCustomer — Coverage: 78.6% | Lines: 14 | Complexity: 9</title></circle></a>
+ <a href="Controllers/ActivationController.php.html#275"><circle cx="780.0" cy="323.6" r="5.4" class="bubble-success"><title>App\Controllers\ActivationController::logPerformance — Coverage: 100.0% | Lines: 12 | Complexity: 4</title></circle></a>
+ <a href="Controllers/CheckoutController.php.html#411"><circle cx="780.0" cy="323.6" r="5.4" class="bubble-success"><title>App\Controllers\CheckoutController::logPerformance — Coverage: 100.0% | Lines: 12 | Complexity: 4</title></circle></a>
+ <a href="Controllers/VerificationController.php.html#132"><circle cx="720.0" cy="317.0" r="5.4" class="bubble-success"><title>App\Controllers\VerificationController::captureAndSanitizeInputs — Coverage: 91.7% | Lines: 12 | Complexity: 5</title></circle></a>
+ <a href="Controllers/VerificationController.php.html#212"><circle cx="780.0" cy="323.6" r="5.4" class="bubble-success"><title>App\Controllers\VerificationController::logPerformance — Coverage: 100.0% | Lines: 12 | Complexity: 4</title></circle></a>
+ <a href="Handlers/Processors/PaymentReceivedProcessor.php.html#441"><circle cx="780.0" cy="323.6" r="5.4" class="bubble-success"><title>App\Handlers\Processors\PaymentReceivedProcessor::logPerformance — Coverage: 100.0% | Lines: 12 | Complexity: 4</title></circle></a>
+ <a href="Entity/BaseEntity.php.html#37"><circle cx="780.0" cy="343.4" r="5.1" class="bubble-success"><title>App\Entity\BaseEntity::generateUuid — Coverage: 100.0% | Lines: 11 | Complexity: 1</title></circle></a>
+ <a href="Handlers/Processors/StripeCheckoutCompletedProcessor.php.html#179"><circle cx="708.0" cy="303.8" r="4.9" class="bubble-success"><title>App\Handlers\Processors\StripeCheckoutCompletedProcessor::attemptLicenseDelivery — Coverage: 90.0% | Lines: 10 | Complexity: 7</title></circle></a>
+ <a href="Handlers/Processors/PaymentReceivedProcessor.php.html#28"><circle cx="780.0" cy="343.4" r="4.7" class="bubble-success"><title>App\Handlers\Processors\PaymentReceivedProcessor::__construct — Coverage: 100.0% | Lines: 9 | Complexity: 1</title></circle></a>
+ <a href="Handlers/Processors/StripeCheckoutCompletedProcessor.php.html#28"><circle cx="780.0" cy="343.4" r="4.4" class="bubble-success"><title>App\Handlers\Processors\StripeCheckoutCompletedProcessor::__construct — Coverage: 100.0% | Lines: 8 | Complexity: 1</title></circle></a>
+ <a href="Controllers/ActivationController.php.html#214"><circle cx="780.0" cy="330.2" r="4.1" class="bubble-success"><title>App\Controllers\ActivationController::sanitizeEmail — Coverage: 100.0% | Lines: 7 | Complexity: 3</title></circle></a>
+ <a href="Controllers/CheckoutController.php.html#266"><circle cx="677.1" cy="330.2" r="4.1" class="bubble-warning"><title>App\Controllers\CheckoutController::getClientIp — Coverage: 85.7% | Lines: 7 | Complexity: 3</title></circle></a>
+ <a href="Controllers/CheckoutController.php.html#348"><circle cx="677.1" cy="330.2" r="4.1" class="bubble-warning"><title>App\Controllers\CheckoutController::sanitizeEmail — Coverage: 85.7% | Lines: 7 | Complexity: 3</title></circle></a>
+ <a href="Controllers/VerificationController.php.html#161"><circle cx="780.0" cy="330.2" r="4.1" class="bubble-success"><title>App\Controllers\VerificationController::sanitizeEmail — Coverage: 100.0% | Lines: 7 | Complexity: 3</title></circle></a>
+ <a href="Controllers/WebhookController.php.html#120"><circle cx="265.7" cy="323.6" r="4.1" class="bubble-danger"><title>App\Controllers\WebhookController::getRequestHeaders — Coverage: 28.6% | Lines: 7 | Complexity: 4</title></circle></a>
+ <a href="Repository/AuditLogRepository.php.html#17"><circle cx="780.0" cy="343.4" r="4.1" class="bubble-success"><title>App\Repository\AuditLogRepository::hasPaymentBeenProcessed — Coverage: 100.0% | Lines: 7 | Complexity: 1</title></circle></a>
+ <a href="Controllers/CheckoutController.php.html#173"><circle cx="780.0" cy="336.8" r="4.0" class="bubble-success"><title>App\Controllers\CheckoutController::respondWithActiveLicense — Coverage: 100.0% | Lines: 6 | Complexity: 2</title></circle></a>
+ <a href="Controllers/CheckoutController.php.html#361"><circle cx="660.0" cy="330.2" r="4.0" class="bubble-warning"><title>App\Controllers\CheckoutController::sanitizeName — Coverage: 83.3% | Lines: 6 | Complexity: 3</title></circle></a>
+ <a href="Entity/BaseEntity.php.html#85"><circle cx="780.0" cy="330.2" r="4.0" class="bubble-success"><title>App\Entity\BaseEntity::isEmpty — Coverage: 100.0% | Lines: 6 | Complexity: 3</title></circle></a>
+ <a href="Entity/Customer.php.html#55"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\Customer::__construct — Coverage: 100.0% | Lines: 6 | Complexity: 1</title></circle></a>
+ <a href="Handlers/Processors/PaymentReceivedProcessor.php.html#426"><circle cx="780.0" cy="330.2" r="4.0" class="bubble-success"><title>App\Handlers\Processors\PaymentReceivedProcessor::resolveTargetPlan — Coverage: 100.0% | Lines: 6 | Complexity: 3</title></circle></a>
+ <a href="Handlers/Processors/StripeCheckoutCompletedProcessor.php.html#167"><circle cx="660.0" cy="330.2" r="4.0" class="bubble-warning"><title>App\Handlers\Processors\StripeCheckoutCompletedProcessor::resolveTargetPlan — Coverage: 83.3% | Lines: 6 | Complexity: 3</title></circle></a>
+ <a href="Controllers/CheckoutController.php.html#127"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Controllers\CheckoutController::findCustomer — Coverage: 100.0% | Lines: 5 | Complexity: 1</title></circle></a>
+ <a href="Controllers/CheckoutController.php.html#372"><circle cx="636.0" cy="330.2" r="4.0" class="bubble-warning"><title>App\Controllers\CheckoutController::sanitizePhone — Coverage: 80.0% | Lines: 5 | Complexity: 3</title></circle></a>
+ <a href="Entity/Feedback.php.html#26"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\Feedback::__construct — Coverage: 100.0% | Lines: 5 | Complexity: 1</title></circle></a>
+ <a href="Handlers/WebhookHandler.php.html#21"><circle cx="780.0" cy="336.8" r="4.0" class="bubble-success"><title>App\Handlers\WebhookHandler::handle — Coverage: 100.0% | Lines: 5 | Complexity: 2</title></circle></a>
+ <a href="Repository/CustomerRepository.php.html#44"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Repository\CustomerRepository::countPaidLifetimeCustomers — Coverage: 100.0% | Lines: 5 | Complexity: 1</title></circle></a>
+ <a href="Services/DiscordService.php.html#18"><circle cx="780.0" cy="323.6" r="4.0" class="bubble-success"><title>App\Services\DiscordService::sendLog — Coverage: 100.0% | Lines: 5 | Complexity: 4</title></circle></a>
+ <a href="Services/PromotionService.php.html#19"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Services\PromotionService::__construct — Coverage: 100.0% | Lines: 5 | Complexity: 1</title></circle></a>
+ <a href="Controllers/ActivationController.php.html#172"><circle cx="600.0" cy="336.8" r="4.0" class="bubble-warning"><title>App\Controllers\ActivationController::isValidExtensionId — Coverage: 75.0% | Lines: 4 | Complexity: 2</title></circle></a>
+ <a href="Controllers/ActivationController.php.html#205"><circle cx="780.0" cy="336.8" r="4.0" class="bubble-success"><title>App\Controllers\ActivationController::sanitizeChromeIdentityId — Coverage: 100.0% | Lines: 4 | Complexity: 2</title></circle></a>
+ <a href="Controllers/ActivationController.php.html#227"><circle cx="780.0" cy="336.8" r="4.0" class="bubble-success"><title>App\Controllers\ActivationController::sanitizeExtensionId — Coverage: 100.0% | Lines: 4 | Complexity: 2</title></circle></a>
+ <a href="Controllers/ActivationController.php.html#237"><circle cx="780.0" cy="336.8" r="4.0" class="bubble-success"><title>App\Controllers\ActivationController::sanitizeLicenseKey — Coverage: 100.0% | Lines: 4 | Complexity: 2</title></circle></a>
+ <a href="Controllers/ActivationController.php.html#259"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Controllers\ActivationController::respondWithError — Coverage: 100.0% | Lines: 4 | Complexity: 1</title></circle></a>
+ <a href="Controllers/ActivationController.php.html#267"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Controllers\ActivationController::logException — Coverage: 100.0% | Lines: 4 | Complexity: 1</title></circle></a>
+ <a href="Controllers/CheckoutController.php.html#183"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Controllers\CheckoutController::createPreRegisteredCustomer — Coverage: 100.0% | Lines: 4 | Complexity: 1</title></circle></a>
+ <a href="Controllers/CheckoutController.php.html#339"><circle cx="780.0" cy="336.8" r="4.0" class="bubble-success"><title>App\Controllers\CheckoutController::sanitizeChromeIdentityId — Coverage: 100.0% | Lines: 4 | Complexity: 2</title></circle></a>
+ <a href="Controllers/CheckoutController.php.html#395"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Controllers\CheckoutController::respondWithError — Coverage: 100.0% | Lines: 4 | Complexity: 1</title></circle></a>
+ <a href="Controllers/CheckoutController.php.html#403"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Controllers\CheckoutController::logException — Coverage: 100.0% | Lines: 4 | Complexity: 1</title></circle></a>
+ <a href="Controllers/HealthCheckController.php.html#9"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Controllers\HealthCheckController::check — Coverage: 100.0% | Lines: 4 | Complexity: 1</title></circle></a>
+ <a href="Controllers/VerificationController.php.html#123"><circle cx="600.0" cy="336.8" r="4.0" class="bubble-warning"><title>App\Controllers\VerificationController::isValidExtensionId — Coverage: 75.0% | Lines: 4 | Complexity: 2</title></circle></a>
+ <a href="Controllers/VerificationController.php.html#152"><circle cx="780.0" cy="336.8" r="4.0" class="bubble-success"><title>App\Controllers\VerificationController::sanitizeChromeIdentityId — Coverage: 100.0% | Lines: 4 | Complexity: 2</title></circle></a>
+ <a href="Controllers/VerificationController.php.html#174"><circle cx="780.0" cy="336.8" r="4.0" class="bubble-success"><title>App\Controllers\VerificationController::sanitizeExtensionId — Coverage: 100.0% | Lines: 4 | Complexity: 2</title></circle></a>
+ <a href="Controllers/VerificationController.php.html#196"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Controllers\VerificationController::respondWithError — Coverage: 100.0% | Lines: 4 | Complexity: 1</title></circle></a>
+ <a href="Controllers/VerificationController.php.html#204"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Controllers\VerificationController::logException — Coverage: 100.0% | Lines: 4 | Complexity: 1</title></circle></a>
+ <a href="Entity/AuditLog.php.html#22"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\AuditLog::__construct — Coverage: 100.0% | Lines: 4 | Complexity: 1</title></circle></a>
+ <a href="Entity/BaseEntity.php.html#24"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\BaseEntity::__construct — Coverage: 100.0% | Lines: 4 | Complexity: 1</title></circle></a>
+ <a href="Entity/Customer.php.html#66"><circle cx="780.0" cy="336.8" r="4.0" class="bubble-success"><title>App\Entity\Customer::markAsPaid — Coverage: 100.0% | Lines: 4 | Complexity: 2</title></circle></a>
+ <a href="Entity/Customer.php.html#76"><circle cx="780.0" cy="330.2" r="4.0" class="bubble-success"><title>App\Entity\Customer::assignLicense — Coverage: 100.0% | Lines: 4 | Complexity: 3</title></circle></a>
+ <a href="Handlers/StripeWebhookHandler.php.html#22"><circle cx="780.0" cy="336.8" r="4.0" class="bubble-success"><title>App\Handlers\StripeWebhookHandler::handle — Coverage: 100.0% | Lines: 4 | Complexity: 2</title></circle></a>
+ <a href="Repository/CustomerRepository.php.html#36"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Repository\CustomerRepository::findPendingDeliveries — Coverage: 100.0% | Lines: 4 | Complexity: 1</title></circle></a>
+ <a href="Controllers/CampaignController.php.html#16"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Controllers\CampaignController::__construct — Coverage: 100.0% | Lines: 3 | Complexity: 1</title></circle></a>
+ <a href="Controllers/CheckoutController.php.html#17"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Controllers\CheckoutController::__construct — Coverage: 100.0% | Lines: 3 | Complexity: 1</title></circle></a>
+ <a href="Controllers/FeedbackController.php.html#17"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Controllers\FeedbackController::__construct — Coverage: 100.0% | Lines: 3 | Complexity: 1</title></circle></a>
+ <a href="Entity/Customer.php.html#86"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\Customer::markLicenseAsDelivered — Coverage: 100.0% | Lines: 3 | Complexity: 1</title></circle></a>
+ <a href="Factories/StripeWebhookProcessorFactory.php.html#23"><circle cx="780.0" cy="336.8" r="4.0" class="bubble-success"><title>App\Factories\StripeWebhookProcessorFactory::getProcessor — Coverage: 100.0% | Lines: 3 | Complexity: 2</title></circle></a>
+ <a href="Factories/WebhookProcessorFactory.php.html#24"><circle cx="780.0" cy="336.8" r="4.0" class="bubble-success"><title>App\Factories\WebhookProcessorFactory::getProcessor — Coverage: 100.0% | Lines: 3 | Complexity: 2</title></circle></a>
+ <a href="Services/AsaasService.php.html#14"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Services\AsaasService::__construct — Coverage: 100.0% | Lines: 3 | Complexity: 1</title></circle></a>
+ <a href="Controllers/ActivationController.php.html#16"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Controllers\ActivationController::__construct — Coverage: 100.0% | Lines: 2 | Complexity: 1</title></circle></a>
+ <a href="Controllers/ActivationController.php.html#246"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Controllers\ActivationController::setupCorsHeaders — Coverage: 100.0% | Lines: 2 | Complexity: 1</title></circle></a>
+ <a href="Controllers/ActivationController.php.html#253"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Controllers\ActivationController::respondWithJson — Coverage: 100.0% | Lines: 2 | Complexity: 1</title></circle></a>
+ <a href="Controllers/CheckoutController.php.html#382"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Controllers\CheckoutController::setupCorsHeaders — Coverage: 100.0% | Lines: 2 | Complexity: 1</title></circle></a>
+ <a href="Controllers/CheckoutController.php.html#389"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Controllers\CheckoutController::respondWithJson — Coverage: 100.0% | Lines: 2 | Complexity: 1</title></circle></a>
+ <a href="Controllers/StripeWebhookController.php.html#17"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Controllers\StripeWebhookController::__construct — Coverage: 100.0% | Lines: 2 | Complexity: 1</title></circle></a>
+ <a href="Controllers/VerificationController.php.html#15"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Controllers\VerificationController::__construct — Coverage: 100.0% | Lines: 2 | Complexity: 1</title></circle></a>
+ <a href="Controllers/VerificationController.php.html#183"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Controllers\VerificationController::setupCorsHeaders — Coverage: 100.0% | Lines: 2 | Complexity: 1</title></circle></a>
+ <a href="Controllers/VerificationController.php.html#190"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Controllers\VerificationController::respondWithJson — Coverage: 100.0% | Lines: 2 | Complexity: 1</title></circle></a>
+ <a href="Controllers/WebhookController.php.html#15"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Controllers\WebhookController::__construct — Coverage: 100.0% | Lines: 2 | Complexity: 1</title></circle></a>
+ <a href="Entity/Customer.php.html#93"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\Customer::recordDeliveryFailure — Coverage: 100.0% | Lines: 2 | Complexity: 1</title></circle></a>
+ <a href="Entity/Customer.php.html#112"><circle cx="780.0" cy="336.8" r="4.0" class="bubble-success"><title>App\Entity\Customer::setName — Coverage: 100.0% | Lines: 2 | Complexity: 2</title></circle></a>
+ <a href="Entity/Customer.php.html#118"><circle cx="780.0" cy="336.8" r="4.0" class="bubble-success"><title>App\Entity\Customer::setEmail — Coverage: 100.0% | Lines: 2 | Complexity: 2</title></circle></a>
+ <a href="Handlers/StripeWebhookHandler.php.html#14"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Handlers\StripeWebhookHandler::__construct — Coverage: 100.0% | Lines: 2 | Complexity: 1</title></circle></a>
+ <a href="Handlers/WebhookHandler.php.html#13"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Handlers\WebhookHandler::__construct — Coverage: 100.0% | Lines: 2 | Complexity: 1</title></circle></a>
+ <a href="Repository/AuditLogRepository.php.html#11"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Repository\AuditLogRepository::save — Coverage: 100.0% | Lines: 2 | Complexity: 1</title></circle></a>
+ <a href="Repository/CustomerRepository.php.html#53"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Repository\CustomerRepository::save — Coverage: 100.0% | Lines: 2 | Complexity: 1</title></circle></a>
+ <a href="Repository/FeedbackRepository.php.html#11"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Repository\FeedbackRepository::save — Coverage: 100.0% | Lines: 2 | Complexity: 1</title></circle></a>
+ <a href="Services/DiscordLogHandler.php.html#14"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Services\DiscordLogHandler::__construct — Coverage: 100.0% | Lines: 2 | Complexity: 1</title></circle></a>
+ <a href="Services/DiscordService.php.html#12"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Services\DiscordService::__construct — Coverage: 100.0% | Lines: 2 | Complexity: 1</title></circle></a>
+ <a href="Services/LicenseService.php.html#9"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Services\LicenseService::generateLicense — Coverage: 100.0% | Lines: 2 | Complexity: 1</title></circle></a>
+ <a href="Controllers/ActivationController.php.html#162"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Controllers\ActivationController::isPreflightRequest — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Controllers/ActivationController.php.html#167"><circle cx="780.0" cy="323.6" r="4.0" class="bubble-success"><title>App\Controllers\ActivationController::validateParams — Coverage: 100.0% | Lines: 1 | Complexity: 4</title></circle></a>
+ <a href="Controllers/CheckoutController.php.html#117"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Controllers\CheckoutController::isPreflightRequest — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Controllers/CheckoutController.php.html#122"><circle cx="780.0" cy="336.8" r="4.0" class="bubble-success"><title>App\Controllers\CheckoutController::validateParams — Coverage: 100.0% | Lines: 1 | Complexity: 2</title></circle></a>
+ <a href="Controllers/VerificationController.php.html#118"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Controllers\VerificationController::isPreflightRequest — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Entity/AuditLog.php.html#30"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\AuditLog::getCustomer — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Entity/AuditLog.php.html#31"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\AuditLog::setCustomer — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Entity/AuditLog.php.html#33"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\AuditLog::getAction — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Entity/AuditLog.php.html#34"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\AuditLog::getDetails — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Entity/BaseEntity.php.html#52"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\BaseEntity::getId — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Entity/BaseEntity.php.html#57"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\BaseEntity::getDateCreated — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Entity/BaseEntity.php.html#62"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\BaseEntity::getDateUpdated — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Entity/BaseEntity.php.html#67"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\BaseEntity::getSystemAccess — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Entity/BaseEntity.php.html#75"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\BaseEntity::setSystemAccess — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Entity/Customer.php.html#99"><circle cx="780.0" cy="336.8" r="4.0" class="bubble-success"><title>App\Entity\Customer::canRetryDelivery — Coverage: 100.0% | Lines: 1 | Complexity: 2</title></circle></a>
+ <a href="Entity/Customer.php.html#104"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\Customer::recordAudit — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Entity/Customer.php.html#111"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\Customer::getName — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Entity/Customer.php.html#117"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\Customer::getEmail — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Entity/Customer.php.html#123"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\Customer::getPhone — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Entity/Customer.php.html#124"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\Customer::setPhone — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Entity/Customer.php.html#126"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\Customer::getLicenseKey — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Entity/Customer.php.html#127"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\Customer::getPaymentStatus — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Entity/Customer.php.html#128"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\Customer::isLicenseDelivered — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Entity/Customer.php.html#129"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\Customer::getDeliveryFailureCount — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Entity/Customer.php.html#131"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\Customer::getPlan — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Entity/Customer.php.html#132"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\Customer::setPlan — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Entity/Customer.php.html#134"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\Customer::getSubscriptionId — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Entity/Customer.php.html#135"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\Customer::setSubscriptionId — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Entity/Customer.php.html#137"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\Customer::getLicenseExpiresAt — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Entity/Customer.php.html#138"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\Customer::setLicenseExpiresAt — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Entity/Customer.php.html#140"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\Customer::getFallbackPlan — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Entity/Customer.php.html#141"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\Customer::setFallbackPlan — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Entity/Customer.php.html#143"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\Customer::getChromeIdentityId — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Entity/Customer.php.html#144"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\Customer::setChromeIdentityId — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Entity/Customer.php.html#179"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\Customer::onPreUpdate — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Entity/Customer.php.html#181"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\Customer::getAuditLogs — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Entity/Feedback.php.html#35"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\Feedback::getCustomer — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Entity/Feedback.php.html#40"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\Feedback::getType — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Entity/Feedback.php.html#45"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\Feedback::getRating — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Entity/Feedback.php.html#50"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\Feedback::getMessage — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Entity/Feedback.php.html#56"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Entity\Feedback::onPreUpdate — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Factories/StripeWebhookProcessorFactory.php.html#13"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Factories\StripeWebhookProcessorFactory::__construct — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Factories/StripeWebhookProcessorFactory.php.html#18"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Factories\StripeWebhookProcessorFactory::registerProcessor — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Factories/WebhookProcessorFactory.php.html#14"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Factories\WebhookProcessorFactory::__construct — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Factories/WebhookProcessorFactory.php.html#19"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Factories\WebhookProcessorFactory::registerProcessor — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Repository/CustomerRepository.php.html#11"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Repository\CustomerRepository::findById — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Repository/CustomerRepository.php.html#16"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Repository\CustomerRepository::findByEmail — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Repository/CustomerRepository.php.html#21"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Repository\CustomerRepository::findBySubscriptionId — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Repository/CustomerRepository.php.html#26"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Repository\CustomerRepository::findByChromeIdentityId — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Repository/CustomerRepository.php.html#31"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Repository\CustomerRepository::findByLicenseKey — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Repository/FeedbackRepository.php.html#17"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Repository\FeedbackRepository::findById — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Services/LandingPageSyncService.php.html#13"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Services\LandingPageSyncService::__construct — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Services/PHPMailerService.php.html#14"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Services\PHPMailerService::__construct — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="Services/PHPMailerService.php.html#19"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Services\PHPMailerService::createMailer — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+</svg>
+     </div>
+    </div>
+    <div class="col-md-6 dashboard-column">
+     <h3>&nbsp;</h3>
+     <p class="text-muted small">Sorted by descending CRAP (Change Risk Anti-Patterns) index.</p>
+     <div class="scrollbox">
+<table class="table">
+ <thead>
+  <tr>
+   <th>Method</th>
+   <th class="text-right"><abbr title="Change Risk Anti-Patterns (CRAP) Index">CRAP</abbr></th>
+   <th class="text-right">Coverage</th>
+  </tr>
+ </thead>
+ <tbody>
+  <tr><td><a href="Handlers/Processors/PaymentReceivedProcessor.php.html#50">App\Handlers\Processors\PaymentReceivedProcessor::process</a></td><td class="text-right">46.49</td><td class="text-right">91.0%</td></tr>
+  <tr><td><a href="Handlers/Processors/StripeCheckoutCompletedProcessor.php.html#48">App\Handlers\Processors\StripeCheckoutCompletedProcessor::process</a></td><td class="text-right">34.37</td><td class="text-right">78.4%</td></tr>
+  <tr><td><a href="Controllers/ActivationController.php.html#24">App\Controllers\ActivationController::handleRequest</a></td><td class="text-right">18.08</td><td class="text-right">93.8%</td></tr>
+  <tr><td><a href="Controllers/WebhookController.php.html#21">App\Controllers\WebhookController::handleRequest</a></td><td class="text-right">16</td><td class="text-right">97.5%</td></tr>
+  <tr><td><a href="Controllers/VerificationController.php.html#23">App\Controllers\VerificationController::handleRequest</a></td><td class="text-right">15</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/CheckoutController.php.html#191">App\Controllers\CheckoutController::generateCheckoutUrl</a></td><td class="text-right">12.32</td><td class="text-right">87.0%</td></tr>
+  <tr><td><a href="Controllers/CheckoutController.php.html#279">App\Controllers\CheckoutController::getCountryCodeFromIp</a></td><td class="text-right">11.55</td><td class="text-right">68.4%</td></tr>
+  <tr><td><a href="Controllers/CheckoutController.php.html#230">App\Controllers\CheckoutController::generateStripeCheckoutUrl</a></td><td class="text-right">11.48</td><td class="text-right">84.2%</td></tr>
+  <tr><td><a href="Controllers/CheckoutController.php.html#30">App\Controllers\CheckoutController::handleRequest</a></td><td class="text-right">11</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/FeedbackController.php.html#27">App\Controllers\FeedbackController::handleRequest</a></td><td class="text-right">11</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/WebhookController.php.html#120">App\Controllers\WebhookController::getRequestHeaders</a></td><td class="text-right">9.83</td><td class="text-right">28.6%</td></tr>
+  <tr><td><a href="Controllers/CheckoutController.php.html#142">App\Controllers\CheckoutController::processExistingCustomer</a></td><td class="text-right">9.80</td><td class="text-right">78.6%</td></tr>
+  <tr><td><a href="Entity/Customer.php.html#146">App\Entity\Customer::isLicenseActive</a></td><td class="text-right">8.01</td><td class="text-right">94.1%</td></tr>
+  <tr><td><a href="Controllers/WebhookController.php.html#87">App\Controllers\WebhookController::saveToFallbackFile</a></td><td class="text-right">7.77</td><td class="text-right">75.0%</td></tr>
+  <tr><td><a href="Handlers/Processors/StripeCheckoutCompletedProcessor.php.html#179">App\Handlers\Processors\StripeCheckoutCompletedProcessor::attemptLicenseDelivery</a></td><td class="text-right">7.05</td><td class="text-right">90.0%</td></tr>
+  <tr><td><a href="Handlers/Processors/PaymentReceivedProcessor.php.html#353">App\Handlers\Processors\PaymentReceivedProcessor::attemptLicenseDelivery</a></td><td class="text-right">7.01</td><td class="text-right">93.8%</td></tr>
+  <tr><td><a href="Services/PromotionService.php.html#33">App\Services\PromotionService::handlePromotionGoal</a></td><td class="text-right">7</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Handlers/Processors/PaymentReceivedProcessor.php.html#316">App\Handlers\Processors\PaymentReceivedProcessor::saveToFallbackFile</a></td><td class="text-right">6.06</td><td class="text-right">88.5%</td></tr>
+  <tr><td><a href="Controllers/FeedbackController.php.html#95">App\Controllers\FeedbackController::sendDiscordNotification</a></td><td class="text-right">6.01</td><td class="text-right">93.8%</td></tr>
+  <tr><td><a href="Services/DiscordService.php.html#29">App\Services\DiscordService::sendEmbed</a></td><td class="text-right">6.01</td><td class="text-right">94.4%</td></tr>
+  <tr><td><a href="Controllers/StripeWebhookController.php.html#23">App\Controllers\StripeWebhookController::handleRequest</a></td><td class="text-right">5.02</td><td class="text-right">90.3%</td></tr>
+  <tr><td><a href="Controllers/ActivationController.php.html#181">App\Controllers\ActivationController::captureAndSanitizeInputs</a></td><td class="text-right">5.01</td><td class="text-right">93.8%</td></tr>
+  <tr><td><a href="Controllers/CheckoutController.php.html#315">App\Controllers\CheckoutController::captureAndSanitizeInputs</a></td><td class="text-right">5.01</td><td class="text-right">93.8%</td></tr>
+  <tr><td><a href="Controllers/VerificationController.php.html#132">App\Controllers\VerificationController::captureAndSanitizeInputs</a></td><td class="text-right">5.01</td><td class="text-right">91.7%</td></tr>
+  <tr><td><a href="Handlers/Processors/PaymentReceivedProcessor.php.html#381">App\Handlers\Processors\PaymentReceivedProcessor::logDoublePayment</a></td><td class="text-right">5.01</td><td class="text-right">91.7%</td></tr>
+  <tr><td><a href="Controllers/ActivationController.php.html#167">App\Controllers\ActivationController::validateParams</a></td><td class="text-right">4</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/ActivationController.php.html#275">App\Controllers\ActivationController::logPerformance</a></td><td class="text-right">4</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/CampaignController.php.html#26">App\Controllers\CampaignController::getStats</a></td><td class="text-right">4</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/CheckoutController.php.html#411">App\Controllers\CheckoutController::logPerformance</a></td><td class="text-right">4</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/VerificationController.php.html#212">App\Controllers\VerificationController::logPerformance</a></td><td class="text-right">4</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Handlers/Processors/PaymentReceivedProcessor.php.html#441">App\Handlers\Processors\PaymentReceivedProcessor::logPerformance</a></td><td class="text-right">4</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Services/DiscordLogHandler.php.html#20">App\Services\DiscordLogHandler::write</a></td><td class="text-right">4</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Services/DiscordService.php.html#18">App\Services\DiscordService::sendLog</a></td><td class="text-right">4</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Services/PHPMailerService.php.html#24">App\Services\PHPMailerService::sendLicenseEmail</a></td><td class="text-right">4</td><td class="text-right">97.5%</td></tr>
+  <tr><td><a href="Controllers/CheckoutController.php.html#372">App\Controllers\CheckoutController::sanitizePhone</a></td><td class="text-right">3.07</td><td class="text-right">80.0%</td></tr>
+  <tr><td><a href="Controllers/CheckoutController.php.html#361">App\Controllers\CheckoutController::sanitizeName</a></td><td class="text-right">3.04</td><td class="text-right">83.3%</td></tr>
+  <tr><td><a href="Handlers/Processors/StripeCheckoutCompletedProcessor.php.html#167">App\Handlers\Processors\StripeCheckoutCompletedProcessor::resolveTargetPlan</a></td><td class="text-right">3.04</td><td class="text-right">83.3%</td></tr>
+  <tr><td><a href="Controllers/CheckoutController.php.html#266">App\Controllers\CheckoutController::getClientIp</a></td><td class="text-right">3.03</td><td class="text-right">85.7%</td></tr>
+  <tr><td><a href="Controllers/CheckoutController.php.html#348">App\Controllers\CheckoutController::sanitizeEmail</a></td><td class="text-right">3.03</td><td class="text-right">85.7%</td></tr>
+  <tr><td><a href="Controllers/ActivationController.php.html#214">App\Controllers\ActivationController::sanitizeEmail</a></td><td class="text-right">3</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/VerificationController.php.html#161">App\Controllers\VerificationController::sanitizeEmail</a></td><td class="text-right">3</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/BaseEntity.php.html#85">App\Entity\BaseEntity::isEmpty</a></td><td class="text-right">3</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/Customer.php.html#76">App\Entity\Customer::assignLicense</a></td><td class="text-right">3</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Handlers/Processors/PaymentReceivedProcessor.php.html#426">App\Handlers\Processors\PaymentReceivedProcessor::resolveTargetPlan</a></td><td class="text-right">3</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Services/AsaasService.php.html#21">App\Services\AsaasService::getCustomerInfo</a></td><td class="text-right">3</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Services/AsaasService.php.html#49">App\Services\AsaasService::updatePaymentLinkToMonthly</a></td><td class="text-right">3</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Services/LandingPageSyncService.php.html#18">App\Services\LandingPageSyncService::notifySale</a></td><td class="text-right">3</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/ActivationController.php.html#172">App\Controllers\ActivationController::isValidExtensionId</a></td><td class="text-right">2.06</td><td class="text-right">75.0%</td></tr>
+  <tr><td><a href="Controllers/VerificationController.php.html#123">App\Controllers\VerificationController::isValidExtensionId</a></td><td class="text-right">2.06</td><td class="text-right">75.0%</td></tr>
+  <tr><td><a href="Controllers/ActivationController.php.html#205">App\Controllers\ActivationController::sanitizeChromeIdentityId</a></td><td class="text-right">2</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/ActivationController.php.html#227">App\Controllers\ActivationController::sanitizeExtensionId</a></td><td class="text-right">2</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/ActivationController.php.html#237">App\Controllers\ActivationController::sanitizeLicenseKey</a></td><td class="text-right">2</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/CheckoutController.php.html#122">App\Controllers\CheckoutController::validateParams</a></td><td class="text-right">2</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/CheckoutController.php.html#173">App\Controllers\CheckoutController::respondWithActiveLicense</a></td><td class="text-right">2</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/CheckoutController.php.html#339">App\Controllers\CheckoutController::sanitizeChromeIdentityId</a></td><td class="text-right">2</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/VerificationController.php.html#152">App\Controllers\VerificationController::sanitizeChromeIdentityId</a></td><td class="text-right">2</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/VerificationController.php.html#174">App\Controllers\VerificationController::sanitizeExtensionId</a></td><td class="text-right">2</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/Customer.php.html#66">App\Entity\Customer::markAsPaid</a></td><td class="text-right">2</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/Customer.php.html#99">App\Entity\Customer::canRetryDelivery</a></td><td class="text-right">2</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/Customer.php.html#112">App\Entity\Customer::setName</a></td><td class="text-right">2</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/Customer.php.html#118">App\Entity\Customer::setEmail</a></td><td class="text-right">2</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Factories/StripeWebhookProcessorFactory.php.html#23">App\Factories\StripeWebhookProcessorFactory::getProcessor</a></td><td class="text-right">2</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Factories/WebhookProcessorFactory.php.html#24">App\Factories\WebhookProcessorFactory::getProcessor</a></td><td class="text-right">2</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Handlers/StripeWebhookHandler.php.html#22">App\Handlers\StripeWebhookHandler::handle</a></td><td class="text-right">2</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Handlers/WebhookHandler.php.html#21">App\Handlers\WebhookHandler::handle</a></td><td class="text-right">2</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/ActivationController.php.html#16">App\Controllers\ActivationController::__construct</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/ActivationController.php.html#162">App\Controllers\ActivationController::isPreflightRequest</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/ActivationController.php.html#246">App\Controllers\ActivationController::setupCorsHeaders</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/ActivationController.php.html#253">App\Controllers\ActivationController::respondWithJson</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/ActivationController.php.html#259">App\Controllers\ActivationController::respondWithError</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/ActivationController.php.html#267">App\Controllers\ActivationController::logException</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/CampaignController.php.html#16">App\Controllers\CampaignController::__construct</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/CheckoutController.php.html#17">App\Controllers\CheckoutController::__construct</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/CheckoutController.php.html#117">App\Controllers\CheckoutController::isPreflightRequest</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/CheckoutController.php.html#127">App\Controllers\CheckoutController::findCustomer</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/CheckoutController.php.html#183">App\Controllers\CheckoutController::createPreRegisteredCustomer</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/CheckoutController.php.html#382">App\Controllers\CheckoutController::setupCorsHeaders</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/CheckoutController.php.html#389">App\Controllers\CheckoutController::respondWithJson</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/CheckoutController.php.html#395">App\Controllers\CheckoutController::respondWithError</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/CheckoutController.php.html#403">App\Controllers\CheckoutController::logException</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/FeedbackController.php.html#17">App\Controllers\FeedbackController::__construct</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/HealthCheckController.php.html#9">App\Controllers\HealthCheckController::check</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/StripeWebhookController.php.html#17">App\Controllers\StripeWebhookController::__construct</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/VerificationController.php.html#15">App\Controllers\VerificationController::__construct</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/VerificationController.php.html#118">App\Controllers\VerificationController::isPreflightRequest</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/VerificationController.php.html#183">App\Controllers\VerificationController::setupCorsHeaders</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/VerificationController.php.html#190">App\Controllers\VerificationController::respondWithJson</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/VerificationController.php.html#196">App\Controllers\VerificationController::respondWithError</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/VerificationController.php.html#204">App\Controllers\VerificationController::logException</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Controllers/WebhookController.php.html#15">App\Controllers\WebhookController::__construct</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/AuditLog.php.html#22">App\Entity\AuditLog::__construct</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/AuditLog.php.html#30">App\Entity\AuditLog::getCustomer</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/AuditLog.php.html#31">App\Entity\AuditLog::setCustomer</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/AuditLog.php.html#33">App\Entity\AuditLog::getAction</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/AuditLog.php.html#34">App\Entity\AuditLog::getDetails</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/BaseEntity.php.html#24">App\Entity\BaseEntity::__construct</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/BaseEntity.php.html#37">App\Entity\BaseEntity::generateUuid</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/BaseEntity.php.html#52">App\Entity\BaseEntity::getId</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/BaseEntity.php.html#57">App\Entity\BaseEntity::getDateCreated</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/BaseEntity.php.html#62">App\Entity\BaseEntity::getDateUpdated</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/BaseEntity.php.html#67">App\Entity\BaseEntity::getSystemAccess</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/BaseEntity.php.html#75">App\Entity\BaseEntity::setSystemAccess</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/Customer.php.html#55">App\Entity\Customer::__construct</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/Customer.php.html#86">App\Entity\Customer::markLicenseAsDelivered</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/Customer.php.html#93">App\Entity\Customer::recordDeliveryFailure</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/Customer.php.html#104">App\Entity\Customer::recordAudit</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/Customer.php.html#111">App\Entity\Customer::getName</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/Customer.php.html#117">App\Entity\Customer::getEmail</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/Customer.php.html#123">App\Entity\Customer::getPhone</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/Customer.php.html#124">App\Entity\Customer::setPhone</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/Customer.php.html#126">App\Entity\Customer::getLicenseKey</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/Customer.php.html#127">App\Entity\Customer::getPaymentStatus</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/Customer.php.html#128">App\Entity\Customer::isLicenseDelivered</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/Customer.php.html#129">App\Entity\Customer::getDeliveryFailureCount</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/Customer.php.html#131">App\Entity\Customer::getPlan</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/Customer.php.html#132">App\Entity\Customer::setPlan</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/Customer.php.html#134">App\Entity\Customer::getSubscriptionId</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/Customer.php.html#135">App\Entity\Customer::setSubscriptionId</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/Customer.php.html#137">App\Entity\Customer::getLicenseExpiresAt</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/Customer.php.html#138">App\Entity\Customer::setLicenseExpiresAt</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/Customer.php.html#140">App\Entity\Customer::getFallbackPlan</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/Customer.php.html#141">App\Entity\Customer::setFallbackPlan</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/Customer.php.html#143">App\Entity\Customer::getChromeIdentityId</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/Customer.php.html#144">App\Entity\Customer::setChromeIdentityId</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/Customer.php.html#179">App\Entity\Customer::onPreUpdate</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/Customer.php.html#181">App\Entity\Customer::getAuditLogs</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/Feedback.php.html#26">App\Entity\Feedback::__construct</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/Feedback.php.html#35">App\Entity\Feedback::getCustomer</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/Feedback.php.html#40">App\Entity\Feedback::getType</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/Feedback.php.html#45">App\Entity\Feedback::getRating</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/Feedback.php.html#50">App\Entity\Feedback::getMessage</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Entity/Feedback.php.html#56">App\Entity\Feedback::onPreUpdate</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Factories/StripeWebhookProcessorFactory.php.html#13">App\Factories\StripeWebhookProcessorFactory::__construct</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Factories/StripeWebhookProcessorFactory.php.html#18">App\Factories\StripeWebhookProcessorFactory::registerProcessor</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Factories/WebhookProcessorFactory.php.html#14">App\Factories\WebhookProcessorFactory::__construct</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Factories/WebhookProcessorFactory.php.html#19">App\Factories\WebhookProcessorFactory::registerProcessor</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Handlers/Processors/PaymentReceivedProcessor.php.html#28">App\Handlers\Processors\PaymentReceivedProcessor::__construct</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Handlers/Processors/StripeCheckoutCompletedProcessor.php.html#28">App\Handlers\Processors\StripeCheckoutCompletedProcessor::__construct</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Handlers/StripeWebhookHandler.php.html#14">App\Handlers\StripeWebhookHandler::__construct</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Handlers/WebhookHandler.php.html#13">App\Handlers\WebhookHandler::__construct</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Repository/AuditLogRepository.php.html#11">App\Repository\AuditLogRepository::save</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Repository/AuditLogRepository.php.html#17">App\Repository\AuditLogRepository::hasPaymentBeenProcessed</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Repository/CustomerRepository.php.html#11">App\Repository\CustomerRepository::findById</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Repository/CustomerRepository.php.html#16">App\Repository\CustomerRepository::findByEmail</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Repository/CustomerRepository.php.html#21">App\Repository\CustomerRepository::findBySubscriptionId</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Repository/CustomerRepository.php.html#26">App\Repository\CustomerRepository::findByChromeIdentityId</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Repository/CustomerRepository.php.html#31">App\Repository\CustomerRepository::findByLicenseKey</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Repository/CustomerRepository.php.html#36">App\Repository\CustomerRepository::findPendingDeliveries</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Repository/CustomerRepository.php.html#44">App\Repository\CustomerRepository::countPaidLifetimeCustomers</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Repository/CustomerRepository.php.html#53">App\Repository\CustomerRepository::save</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Repository/FeedbackRepository.php.html#11">App\Repository\FeedbackRepository::save</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Repository/FeedbackRepository.php.html#17">App\Repository\FeedbackRepository::findById</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Services/AsaasService.php.html#14">App\Services\AsaasService::__construct</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Services/DiscordLogHandler.php.html#14">App\Services\DiscordLogHandler::__construct</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Services/DiscordService.php.html#12">App\Services\DiscordService::__construct</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Services/LandingPageSyncService.php.html#13">App\Services\LandingPageSyncService::__construct</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Services/LicenseService.php.html#9">App\Services\LicenseService::generateLicense</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Services/PHPMailerService.php.html#14">App\Services\PHPMailerService::__construct</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Services/PHPMailerService.php.html#19">App\Services\PHPMailerService::createMailer</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Services/PromotionService.php.html#19">App\Services\PromotionService::__construct</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+ </tbody>
+</table>
+     </div>
+    </div>
+   </div>
+   <footer>
+    <hr/>
+    <p>
+     <small>Generated by <a href="https://github.com/sebastianbergmann/php-code-coverage" target="_top">php-code-coverage 14.1.8</a> using <a href="https://www.php.net/" target="_top">PHP 8.4.21</a> and <a href="https://phpunit.de/">PHPUnit 13.1.10</a> at Sun Jun 7 2:46:45 UTC 2026.</small>
+    </p>
+   </footer>
+  </div>
+ </body>
+</html>

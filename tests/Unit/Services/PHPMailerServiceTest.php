@@ -73,4 +73,24 @@ class PHPMailerServiceTest extends TestCase
         $this->assertFalse($result);
         $this->assertTrue($this->testHandler->hasCriticalThatContains('SMTP Error'));
     }
+
+    public function testSendLicenseEmailMissingTemplate()
+    {
+        $mockMailer = $this->createMock(PHPMailer::class);
+        $mockMailer->expects($this->once())->method('send')->willReturn(true);
+        
+        $service = new TestablePHPMailerService([
+            'host' => 'smtp.test.com',
+            'username' => 'test_user',
+            'password' => 'test_pass',
+            'port' => 465
+        ]);
+        $service->mockMailer = $mockMailer;
+
+        // "invalid_template.html" doesn't exist
+        $result = $service->sendLicenseEmail('client@test.com', 'LIC-123', $this->logger, 'Client', 'invalid_template.html');
+
+        $this->assertTrue($result);
+        $this->assertTrue($this->testHandler->hasWarningThatContains('Email template not found'));
+    }
 }

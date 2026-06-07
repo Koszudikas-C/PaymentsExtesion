@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <title>Dashboard for D:\Project AIFreelas\Extension\Payments\src\Services</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="../_css/bootstrap.min.css?v=14.1.8" rel="stylesheet" type="text/css">
+  <link href="../_css/style.css?v=14.1.8" rel="stylesheet" type="text/css">
+  <link href="../_css/custom.css" rel="stylesheet" type="text/css">
+ </head>
+ <body>
+  <header>
+   <div class="container-fluid">
+    <div class="row">
+     <div class="col-md-12">
+      <nav aria-label="breadcrumb">
+       <ol class="breadcrumb">
+         <li class="breadcrumb-item"><a href="../index.html">D:\Project AIFreelas\Extension\Payments\src</a></li>
+         <li class="breadcrumb-item"><a href="index.html">Services</a></li>
+         <li class="breadcrumb-item active">(Dashboard)</li>
+
+       </ol>
+      </nav>
+     </div>
+    </div>
+   </div>
+  </header>
+  <div class="container-fluid">
+   <div class="row dashboard-row">
+    <div class="col-md-6">
+     <h3>Classes</h3>
+     <p class="text-muted small">Bubble size = executable lines. Hover for details, click to navigate.</p>
+     <div class="file-coverage-chart">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid meet">
+ <style>
+  .bubble-success { fill: var(--phpunit-success-bar); opacity: 0.7; }
+  .bubble-warning { fill: var(--phpunit-warning-bar); opacity: 0.7; }
+  .bubble-danger { fill: var(--phpunit-danger-bar); opacity: 0.7; }
+  .bubble-success:hover, .bubble-warning:hover, .bubble-danger:hover { opacity: 1; stroke: var(--bs-emphasis-color); stroke-width: 1.5; }
+  .chart-grid { stroke: var(--bs-border-color); stroke-width: 0.5; stroke-dasharray: 4,4; opacity: 0.5; }
+  .chart-axis { stroke: var(--bs-border-color); stroke-width: 1; }
+  .chart-label { fill: var(--bs-body-color); font-size: 11px; font-family: var(--bs-font-sans-serif, sans-serif); }
+  .chart-title { fill: var(--bs-body-color); font-size: 12px; font-family: var(--bs-font-sans-serif, sans-serif); }
+ </style>
+ <line x1="60.0" y1="20" x2="60.0" y2="350" class="chart-grid"/>
+ <text x="60.0" y="368" text-anchor="middle" class="chart-label">0%</text>
+ <line x1="204.0" y1="20" x2="204.0" y2="350" class="chart-grid"/>
+ <text x="204.0" y="368" text-anchor="middle" class="chart-label">20%</text>
+ <line x1="348.0" y1="20" x2="348.0" y2="350" class="chart-grid"/>
+ <text x="348.0" y="368" text-anchor="middle" class="chart-label">40%</text>
+ <line x1="492.0" y1="20" x2="492.0" y2="350" class="chart-grid"/>
+ <text x="492.0" y="368" text-anchor="middle" class="chart-label">60%</text>
+ <line x1="636.0" y1="20" x2="636.0" y2="350" class="chart-grid"/>
+ <text x="636.0" y="368" text-anchor="middle" class="chart-label">80%</text>
+ <line x1="780.0" y1="20" x2="780.0" y2="350" class="chart-grid"/>
+ <text x="780.0" y="368" text-anchor="middle" class="chart-label">100%</text>
+ <line x1="60" y1="350.0" x2="780" y2="350.0" class="chart-grid"/>
+ <text x="52" y="350.0" text-anchor="end" dominant-baseline="middle" class="chart-label">0</text>
+ <line x1="60" y1="240.0" x2="780" y2="240.0" class="chart-grid"/>
+ <text x="52" y="240.0" text-anchor="end" dominant-baseline="middle" class="chart-label">5</text>
+ <line x1="60" y1="130.0" x2="780" y2="130.0" class="chart-grid"/>
+ <text x="52" y="130.0" text-anchor="end" dominant-baseline="middle" class="chart-label">10</text>
+ <line x1="60" y1="20.0" x2="780" y2="20.0" class="chart-grid"/>
+ <text x="52" y="20.0" text-anchor="end" dominant-baseline="middle" class="chart-label">15</text>
+ <line x1="60" y1="20" x2="60" y2="350" class="chart-axis"/>
+ <line x1="60" y1="350" x2="780" y2="350" class="chart-axis"/>
+ <text x="420.0" y="395" text-anchor="middle" class="chart-title">Line Coverage (%)</text>
+ <text x="15" y="185.0" text-anchor="middle" transform="rotate(-90, 15, 185.0)" class="chart-title">Cyclomatic Complexity</text>
+ <a href="AsaasService.php.html#8"><circle cx="780.0" cy="196.0" r="20.0" class="bubble-success"><title>App\Services\AsaasService — Coverage: 100.0% | Lines: 51 | Complexity: 7</title></circle></a>
+ <a href="DiscordService.php.html#7"><circle cx="746.5" cy="108.0" r="18.4" class="bubble-success"><title>App\Services\DiscordService — Coverage: 95.3% | Lines: 43 | Complexity: 11</title></circle></a>
+ <a href="PHPMailerService.php.html#10"><circle cx="762.9" cy="218.0" r="18.1" class="bubble-success"><title>App\Services\PHPMailerService — Coverage: 97.6% | Lines: 42 | Complexity: 6</title></circle></a>
+ <a href="LandingPageSyncService.php.html#9"><circle cx="780.0" cy="262.0" r="15.6" class="bubble-success"><title>App\Services\LandingPageSyncService — Coverage: 100.0% | Lines: 31 | Complexity: 4</title></circle></a>
+ <a href="PromotionService.php.html#11"><circle cx="780.0" cy="174.0" r="13.7" class="bubble-success"><title>App\Services\PromotionService — Coverage: 100.0% | Lines: 24 | Complexity: 8</title></circle></a>
+ <a href="DiscordLogHandler.php.html#10"><circle cx="780.0" cy="240.0" r="11.9" class="bubble-success"><title>App\Services\DiscordLogHandler — Coverage: 100.0% | Lines: 18 | Complexity: 5</title></circle></a>
+ <a href="LicenseService.php.html#7"><circle cx="780.0" cy="328.0" r="4.0" class="bubble-success"><title>App\Services\LicenseService — Coverage: 100.0% | Lines: 2 | Complexity: 1</title></circle></a>
+</svg>
+     </div>
+    </div>
+    <div class="col-md-6 dashboard-column">
+     <h3>&nbsp;</h3>
+     <p class="text-muted small">Sorted by descending CRAP (Change Risk Anti-Patterns) index.</p>
+     <div class="scrollbox">
+<table class="table">
+ <thead>
+  <tr>
+   <th>Class</th>
+   <th class="text-right"><abbr title="Change Risk Anti-Patterns (CRAP) Index">CRAP</abbr></th>
+   <th class="text-right">Coverage</th>
+  </tr>
+ </thead>
+ <tbody>
+  <tr><td><a href="DiscordService.php.html#7">App\Services\DiscordService</a></td><td class="text-right">11</td><td class="text-right">95.3%</td></tr>
+  <tr><td><a href="PromotionService.php.html#11">App\Services\PromotionService</a></td><td class="text-right">8</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="AsaasService.php.html#8">App\Services\AsaasService</a></td><td class="text-right">7</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="PHPMailerService.php.html#10">App\Services\PHPMailerService</a></td><td class="text-right">6</td><td class="text-right">97.6%</td></tr>
+  <tr><td><a href="DiscordLogHandler.php.html#10">App\Services\DiscordLogHandler</a></td><td class="text-right">5</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="LandingPageSyncService.php.html#9">App\Services\LandingPageSyncService</a></td><td class="text-right">4</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="LicenseService.php.html#7">App\Services\LicenseService</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+ </tbody>
+</table>
+     </div>
+    </div>
+   </div>
+   <div class="row dashboard-row">
+    <div class="col-md-6">
+     <h3>Methods</h3>
+     <p class="text-muted small">Bubble size = executable lines. Hover for details, click to navigate.</p>
+     <div class="file-coverage-chart">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid meet">
+ <style>
+  .bubble-success { fill: var(--phpunit-success-bar); opacity: 0.7; }
+  .bubble-warning { fill: var(--phpunit-warning-bar); opacity: 0.7; }
+  .bubble-danger { fill: var(--phpunit-danger-bar); opacity: 0.7; }
+  .bubble-success:hover, .bubble-warning:hover, .bubble-danger:hover { opacity: 1; stroke: var(--bs-emphasis-color); stroke-width: 1.5; }
+  .chart-grid { stroke: var(--bs-border-color); stroke-width: 0.5; stroke-dasharray: 4,4; opacity: 0.5; }
+  .chart-axis { stroke: var(--bs-border-color); stroke-width: 1; }
+  .chart-label { fill: var(--bs-body-color); font-size: 11px; font-family: var(--bs-font-sans-serif, sans-serif); }
+  .chart-title { fill: var(--bs-body-color); font-size: 12px; font-family: var(--bs-font-sans-serif, sans-serif); }
+ </style>
+ <line x1="60.0" y1="20" x2="60.0" y2="350" class="chart-grid"/>
+ <text x="60.0" y="368" text-anchor="middle" class="chart-label">0%</text>
+ <line x1="204.0" y1="20" x2="204.0" y2="350" class="chart-grid"/>
+ <text x="204.0" y="368" text-anchor="middle" class="chart-label">20%</text>
+ <line x1="348.0" y1="20" x2="348.0" y2="350" class="chart-grid"/>
+ <text x="348.0" y="368" text-anchor="middle" class="chart-label">40%</text>
+ <line x1="492.0" y1="20" x2="492.0" y2="350" class="chart-grid"/>
+ <text x="492.0" y="368" text-anchor="middle" class="chart-label">60%</text>
+ <line x1="636.0" y1="20" x2="636.0" y2="350" class="chart-grid"/>
+ <text x="636.0" y="368" text-anchor="middle" class="chart-label">80%</text>
+ <line x1="780.0" y1="20" x2="780.0" y2="350" class="chart-grid"/>
+ <text x="780.0" y="368" text-anchor="middle" class="chart-label">100%</text>
+ <line x1="60" y1="350.0" x2="780" y2="350.0" class="chart-grid"/>
+ <text x="52" y="350.0" text-anchor="end" dominant-baseline="middle" class="chart-label">0</text>
+ <line x1="60" y1="267.5" x2="780" y2="267.5" class="chart-grid"/>
+ <text x="52" y="267.5" text-anchor="end" dominant-baseline="middle" class="chart-label">2</text>
+ <line x1="60" y1="185.0" x2="780" y2="185.0" class="chart-grid"/>
+ <text x="52" y="185.0" text-anchor="end" dominant-baseline="middle" class="chart-label">4</text>
+ <line x1="60" y1="102.5" x2="780" y2="102.5" class="chart-grid"/>
+ <text x="52" y="102.5" text-anchor="end" dominant-baseline="middle" class="chart-label">6</text>
+ <line x1="60" y1="20.0" x2="780" y2="20.0" class="chart-grid"/>
+ <text x="52" y="20.0" text-anchor="end" dominant-baseline="middle" class="chart-label">8</text>
+ <line x1="60" y1="20" x2="60" y2="350" class="chart-axis"/>
+ <line x1="60" y1="350" x2="780" y2="350" class="chart-axis"/>
+ <text x="420.0" y="395" text-anchor="middle" class="chart-title">Line Coverage (%)</text>
+ <text x="15" y="185.0" text-anchor="middle" transform="rotate(-90, 15, 185.0)" class="chart-title">Cyclomatic Complexity</text>
+ <a href="PHPMailerService.php.html#24"><circle cx="762.0" cy="185.0" r="20.0" class="bubble-success"><title>App\Services\PHPMailerService::sendLicenseEmail — Coverage: 97.5% | Lines: 40 | Complexity: 4</title></circle></a>
+ <a href="DiscordService.php.html#29"><circle cx="740.0" cy="102.5" r="19.0" class="bubble-success"><title>App\Services\DiscordService::sendEmbed — Coverage: 94.4% | Lines: 36 | Complexity: 6</title></circle></a>
+ <a href="AsaasService.php.html#49"><circle cx="780.0" cy="226.2" r="17.6" class="bubble-success"><title>App\Services\AsaasService::updatePaymentLinkToMonthly — Coverage: 100.0% | Lines: 31 | Complexity: 3</title></circle></a>
+ <a href="LandingPageSyncService.php.html#18"><circle cx="780.0" cy="226.2" r="17.3" class="bubble-success"><title>App\Services\LandingPageSyncService::notifySale — Coverage: 100.0% | Lines: 30 | Complexity: 3</title></circle></a>
+ <a href="PromotionService.php.html#33"><circle cx="780.0" cy="61.2" r="13.8" class="bubble-success"><title>App\Services\PromotionService::handlePromotionGoal — Coverage: 100.0% | Lines: 19 | Complexity: 7</title></circle></a>
+ <a href="AsaasService.php.html#21"><circle cx="780.0" cy="226.2" r="13.0" class="bubble-success"><title>App\Services\AsaasService::getCustomerInfo — Coverage: 100.0% | Lines: 17 | Complexity: 3</title></circle></a>
+ <a href="DiscordLogHandler.php.html#20"><circle cx="780.0" cy="185.0" r="12.6" class="bubble-success"><title>App\Services\DiscordLogHandler::write — Coverage: 100.0% | Lines: 16 | Complexity: 4</title></circle></a>
+ <a href="DiscordService.php.html#18"><circle cx="780.0" cy="185.0" r="7.1" class="bubble-success"><title>App\Services\DiscordService::sendLog — Coverage: 100.0% | Lines: 5 | Complexity: 4</title></circle></a>
+ <a href="PromotionService.php.html#19"><circle cx="780.0" cy="308.8" r="7.1" class="bubble-success"><title>App\Services\PromotionService::__construct — Coverage: 100.0% | Lines: 5 | Complexity: 1</title></circle></a>
+ <a href="AsaasService.php.html#14"><circle cx="780.0" cy="308.8" r="5.5" class="bubble-success"><title>App\Services\AsaasService::__construct — Coverage: 100.0% | Lines: 3 | Complexity: 1</title></circle></a>
+ <a href="DiscordLogHandler.php.html#14"><circle cx="780.0" cy="308.8" r="4.5" class="bubble-success"><title>App\Services\DiscordLogHandler::__construct — Coverage: 100.0% | Lines: 2 | Complexity: 1</title></circle></a>
+ <a href="DiscordService.php.html#12"><circle cx="780.0" cy="308.8" r="4.5" class="bubble-success"><title>App\Services\DiscordService::__construct — Coverage: 100.0% | Lines: 2 | Complexity: 1</title></circle></a>
+ <a href="LicenseService.php.html#9"><circle cx="780.0" cy="308.8" r="4.5" class="bubble-success"><title>App\Services\LicenseService::generateLicense — Coverage: 100.0% | Lines: 2 | Complexity: 1</title></circle></a>
+ <a href="LandingPageSyncService.php.html#13"><circle cx="780.0" cy="308.8" r="4.0" class="bubble-success"><title>App\Services\LandingPageSyncService::__construct — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="PHPMailerService.php.html#14"><circle cx="780.0" cy="308.8" r="4.0" class="bubble-success"><title>App\Services\PHPMailerService::__construct — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+ <a href="PHPMailerService.php.html#19"><circle cx="780.0" cy="308.8" r="4.0" class="bubble-success"><title>App\Services\PHPMailerService::createMailer — Coverage: 100.0% | Lines: 1 | Complexity: 1</title></circle></a>
+</svg>
+     </div>
+    </div>
+    <div class="col-md-6 dashboard-column">
+     <h3>&nbsp;</h3>
+     <p class="text-muted small">Sorted by descending CRAP (Change Risk Anti-Patterns) index.</p>
+     <div class="scrollbox">
+<table class="table">
+ <thead>
+  <tr>
+   <th>Method</th>
+   <th class="text-right"><abbr title="Change Risk Anti-Patterns (CRAP) Index">CRAP</abbr></th>
+   <th class="text-right">Coverage</th>
+  </tr>
+ </thead>
+ <tbody>
+  <tr><td><a href="PromotionService.php.html#33">App\Services\PromotionService::handlePromotionGoal</a></td><td class="text-right">7</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="DiscordService.php.html#29">App\Services\DiscordService::sendEmbed</a></td><td class="text-right">6.01</td><td class="text-right">94.4%</td></tr>
+  <tr><td><a href="DiscordLogHandler.php.html#20">App\Services\DiscordLogHandler::write</a></td><td class="text-right">4</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="DiscordService.php.html#18">App\Services\DiscordService::sendLog</a></td><td class="text-right">4</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="PHPMailerService.php.html#24">App\Services\PHPMailerService::sendLicenseEmail</a></td><td class="text-right">4</td><td class="text-right">97.5%</td></tr>
+  <tr><td><a href="AsaasService.php.html#21">App\Services\AsaasService::getCustomerInfo</a></td><td class="text-right">3</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="AsaasService.php.html#49">App\Services\AsaasService::updatePaymentLinkToMonthly</a></td><td class="text-right">3</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="LandingPageSyncService.php.html#18">App\Services\LandingPageSyncService::notifySale</a></td><td class="text-right">3</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="AsaasService.php.html#14">App\Services\AsaasService::__construct</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="DiscordLogHandler.php.html#14">App\Services\DiscordLogHandler::__construct</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="DiscordService.php.html#12">App\Services\DiscordService::__construct</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="LandingPageSyncService.php.html#13">App\Services\LandingPageSyncService::__construct</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="LicenseService.php.html#9">App\Services\LicenseService::generateLicense</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="PHPMailerService.php.html#14">App\Services\PHPMailerService::__construct</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="PHPMailerService.php.html#19">App\Services\PHPMailerService::createMailer</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="PromotionService.php.html#19">App\Services\PromotionService::__construct</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+ </tbody>
+</table>
+     </div>
+    </div>
+   </div>
+   <footer>
+    <hr/>
+    <p>
+     <small>Generated by <a href="https://github.com/sebastianbergmann/php-code-coverage" target="_top">php-code-coverage 14.1.8</a> using <a href="https://www.php.net/" target="_top">PHP 8.4.21</a> and <a href="https://phpunit.de/">PHPUnit 13.1.10</a> at Sun Jun 7 2:46:45 UTC 2026.</small>
+    </p>
+   </footer>
+  </div>
+ </body>
+</html>

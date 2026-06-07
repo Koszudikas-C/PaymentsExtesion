@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <title>Dashboard for D:\Project AIFreelas\Extension\Payments\src\Handlers</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="../_css/bootstrap.min.css?v=14.1.8" rel="stylesheet" type="text/css">
+  <link href="../_css/style.css?v=14.1.8" rel="stylesheet" type="text/css">
+  <link href="../_css/custom.css" rel="stylesheet" type="text/css">
+ </head>
+ <body>
+  <header>
+   <div class="container-fluid">
+    <div class="row">
+     <div class="col-md-12">
+      <nav aria-label="breadcrumb">
+       <ol class="breadcrumb">
+         <li class="breadcrumb-item"><a href="../index.html">D:\Project AIFreelas\Extension\Payments\src</a></li>
+         <li class="breadcrumb-item"><a href="index.html">Handlers</a></li>
+         <li class="breadcrumb-item active">(Dashboard)</li>
+
+       </ol>
+      </nav>
+     </div>
+    </div>
+   </div>
+  </header>
+  <div class="container-fluid">
+   <div class="row dashboard-row">
+    <div class="col-md-6">
+     <h3>Classes</h3>
+     <p class="text-muted small">Bubble size = executable lines. Hover for details, click to navigate.</p>
+     <div class="file-coverage-chart">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid meet">
+ <style>
+  .bubble-success { fill: var(--phpunit-success-bar); opacity: 0.7; }
+  .bubble-warning { fill: var(--phpunit-warning-bar); opacity: 0.7; }
+  .bubble-danger { fill: var(--phpunit-danger-bar); opacity: 0.7; }
+  .bubble-success:hover, .bubble-warning:hover, .bubble-danger:hover { opacity: 1; stroke: var(--bs-emphasis-color); stroke-width: 1.5; }
+  .chart-grid { stroke: var(--bs-border-color); stroke-width: 0.5; stroke-dasharray: 4,4; opacity: 0.5; }
+  .chart-axis { stroke: var(--bs-border-color); stroke-width: 1; }
+  .chart-label { fill: var(--bs-body-color); font-size: 11px; font-family: var(--bs-font-sans-serif, sans-serif); }
+  .chart-title { fill: var(--bs-body-color); font-size: 12px; font-family: var(--bs-font-sans-serif, sans-serif); }
+ </style>
+ <line x1="60.0" y1="20" x2="60.0" y2="350" class="chart-grid"/>
+ <text x="60.0" y="368" text-anchor="middle" class="chart-label">0%</text>
+ <line x1="204.0" y1="20" x2="204.0" y2="350" class="chart-grid"/>
+ <text x="204.0" y="368" text-anchor="middle" class="chart-label">20%</text>
+ <line x1="348.0" y1="20" x2="348.0" y2="350" class="chart-grid"/>
+ <text x="348.0" y="368" text-anchor="middle" class="chart-label">40%</text>
+ <line x1="492.0" y1="20" x2="492.0" y2="350" class="chart-grid"/>
+ <text x="492.0" y="368" text-anchor="middle" class="chart-label">60%</text>
+ <line x1="636.0" y1="20" x2="636.0" y2="350" class="chart-grid"/>
+ <text x="636.0" y="368" text-anchor="middle" class="chart-label">80%</text>
+ <line x1="780.0" y1="20" x2="780.0" y2="350" class="chart-grid"/>
+ <text x="780.0" y="368" text-anchor="middle" class="chart-label">100%</text>
+ <line x1="60" y1="350.0" x2="780" y2="350.0" class="chart-grid"/>
+ <text x="52" y="350.0" text-anchor="end" dominant-baseline="middle" class="chart-label">0</text>
+ <line x1="60" y1="267.5" x2="780" y2="267.5" class="chart-grid"/>
+ <text x="52" y="267.5" text-anchor="end" dominant-baseline="middle" class="chart-label">20</text>
+ <line x1="60" y1="185.0" x2="780" y2="185.0" class="chart-grid"/>
+ <text x="52" y="185.0" text-anchor="end" dominant-baseline="middle" class="chart-label">40</text>
+ <line x1="60" y1="102.5" x2="780" y2="102.5" class="chart-grid"/>
+ <text x="52" y="102.5" text-anchor="end" dominant-baseline="middle" class="chart-label">60</text>
+ <line x1="60" y1="20.0" x2="780" y2="20.0" class="chart-grid"/>
+ <text x="52" y="20.0" text-anchor="end" dominant-baseline="middle" class="chart-label">80</text>
+ <line x1="60" y1="20" x2="60" y2="350" class="chart-axis"/>
+ <line x1="60" y1="350" x2="780" y2="350" class="chart-axis"/>
+ <text x="420.0" y="395" text-anchor="middle" class="chart-title">Line Coverage (%)</text>
+ <text x="15" y="185.0" text-anchor="middle" transform="rotate(-90, 15, 185.0)" class="chart-title">Cyclomatic Complexity</text>
+ <a href="Processors/PaymentReceivedProcessor.php.html#16"><circle cx="721.6" cy="57.1" r="20.0" class="bubble-success"><title>App\Handlers\Processors\PaymentReceivedProcessor — Coverage: 91.9% | Lines: 259 | Complexity: 71</title></circle></a>
+ <a href="Processors/StripeCheckoutCompletedProcessor.php.html#17"><circle cx="647.8" cy="193.2" r="12.3" class="bubble-warning"><title>App\Handlers\Processors\StripeCheckoutCompletedProcessor — Coverage: 81.6% | Lines: 98 | Complexity: 38</title></circle></a>
+ <a href="WebhookHandler.php.html#8"><circle cx="780.0" cy="337.6" r="4.0" class="bubble-success"><title>App\Handlers\WebhookHandler — Coverage: 100.0% | Lines: 7 | Complexity: 3</title></circle></a>
+ <a href="StripeWebhookHandler.php.html#9"><circle cx="780.0" cy="337.6" r="4.0" class="bubble-success"><title>App\Handlers\StripeWebhookHandler — Coverage: 100.0% | Lines: 6 | Complexity: 3</title></circle></a>
+</svg>
+     </div>
+    </div>
+    <div class="col-md-6 dashboard-column">
+     <h3>&nbsp;</h3>
+     <p class="text-muted small">Sorted by descending CRAP (Change Risk Anti-Patterns) index.</p>
+     <div class="scrollbox">
+<table class="table">
+ <thead>
+  <tr>
+   <th>Class</th>
+   <th class="text-right"><abbr title="Change Risk Anti-Patterns (CRAP) Index">CRAP</abbr></th>
+   <th class="text-right">Coverage</th>
+  </tr>
+ </thead>
+ <tbody>
+  <tr><td><a href="Processors/PaymentReceivedProcessor.php.html#16">App\Handlers\Processors\PaymentReceivedProcessor</a></td><td class="text-right">73.69</td><td class="text-right">91.9%</td></tr>
+  <tr><td><a href="Processors/StripeCheckoutCompletedProcessor.php.html#17">App\Handlers\Processors\StripeCheckoutCompletedProcessor</a></td><td class="text-right">46.95</td><td class="text-right">81.6%</td></tr>
+  <tr><td><a href="StripeWebhookHandler.php.html#9">App\Handlers\StripeWebhookHandler</a></td><td class="text-right">3</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="WebhookHandler.php.html#8">App\Handlers\WebhookHandler</a></td><td class="text-right">3</td><td class="text-right">100.0%</td></tr>
+ </tbody>
+</table>
+     </div>
+    </div>
+   </div>
+   <div class="row dashboard-row">
+    <div class="col-md-6">
+     <h3>Methods</h3>
+     <p class="text-muted small">Bubble size = executable lines. Hover for details, click to navigate.</p>
+     <div class="file-coverage-chart">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid meet">
+ <style>
+  .bubble-success { fill: var(--phpunit-success-bar); opacity: 0.7; }
+  .bubble-warning { fill: var(--phpunit-warning-bar); opacity: 0.7; }
+  .bubble-danger { fill: var(--phpunit-danger-bar); opacity: 0.7; }
+  .bubble-success:hover, .bubble-warning:hover, .bubble-danger:hover { opacity: 1; stroke: var(--bs-emphasis-color); stroke-width: 1.5; }
+  .chart-grid { stroke: var(--bs-border-color); stroke-width: 0.5; stroke-dasharray: 4,4; opacity: 0.5; }
+  .chart-axis { stroke: var(--bs-border-color); stroke-width: 1; }
+  .chart-label { fill: var(--bs-body-color); font-size: 11px; font-family: var(--bs-font-sans-serif, sans-serif); }
+  .chart-title { fill: var(--bs-body-color); font-size: 12px; font-family: var(--bs-font-sans-serif, sans-serif); }
+ </style>
+ <line x1="60.0" y1="20" x2="60.0" y2="350" class="chart-grid"/>
+ <text x="60.0" y="368" text-anchor="middle" class="chart-label">0%</text>
+ <line x1="204.0" y1="20" x2="204.0" y2="350" class="chart-grid"/>
+ <text x="204.0" y="368" text-anchor="middle" class="chart-label">20%</text>
+ <line x1="348.0" y1="20" x2="348.0" y2="350" class="chart-grid"/>
+ <text x="348.0" y="368" text-anchor="middle" class="chart-label">40%</text>
+ <line x1="492.0" y1="20" x2="492.0" y2="350" class="chart-grid"/>
+ <text x="492.0" y="368" text-anchor="middle" class="chart-label">60%</text>
+ <line x1="636.0" y1="20" x2="636.0" y2="350" class="chart-grid"/>
+ <text x="636.0" y="368" text-anchor="middle" class="chart-label">80%</text>
+ <line x1="780.0" y1="20" x2="780.0" y2="350" class="chart-grid"/>
+ <text x="780.0" y="368" text-anchor="middle" class="chart-label">100%</text>
+ <line x1="60" y1="350.0" x2="780" y2="350.0" class="chart-grid"/>
+ <text x="52" y="350.0" text-anchor="end" dominant-baseline="middle" class="chart-label">0</text>
+ <line x1="60" y1="284.0" x2="780" y2="284.0" class="chart-grid"/>
+ <text x="52" y="284.0" text-anchor="end" dominant-baseline="middle" class="chart-label">10</text>
+ <line x1="60" y1="218.0" x2="780" y2="218.0" class="chart-grid"/>
+ <text x="52" y="218.0" text-anchor="end" dominant-baseline="middle" class="chart-label">20</text>
+ <line x1="60" y1="152.0" x2="780" y2="152.0" class="chart-grid"/>
+ <text x="52" y="152.0" text-anchor="end" dominant-baseline="middle" class="chart-label">30</text>
+ <line x1="60" y1="86.0" x2="780" y2="86.0" class="chart-grid"/>
+ <text x="52" y="86.0" text-anchor="end" dominant-baseline="middle" class="chart-label">40</text>
+ <line x1="60" y1="20.0" x2="780" y2="20.0" class="chart-grid"/>
+ <text x="52" y="20.0" text-anchor="end" dominant-baseline="middle" class="chart-label">50</text>
+ <line x1="60" y1="20" x2="60" y2="350" class="chart-axis"/>
+ <line x1="60" y1="350" x2="780" y2="350" class="chart-axis"/>
+ <text x="420.0" y="395" text-anchor="middle" class="chart-title">Line Coverage (%)</text>
+ <text x="15" y="185.0" text-anchor="middle" transform="rotate(-90, 15, 185.0)" class="chart-title">Cyclomatic Complexity</text>
+ <a href="Processors/PaymentReceivedProcessor.php.html#50"><circle cx="714.9" cy="53.0" r="20.0" class="bubble-success"><title>App\Handlers\Processors\PaymentReceivedProcessor::process — Coverage: 91.0% | Lines: 166 | Complexity: 45</title></circle></a>
+ <a href="Processors/StripeCheckoutCompletedProcessor.php.html#48"><circle cx="624.3" cy="171.8" r="13.4" class="bubble-warning"><title>App\Handlers\Processors\StripeCheckoutCompletedProcessor::process — Coverage: 78.4% | Lines: 74 | Complexity: 27</title></circle></a>
+ <a href="Processors/PaymentReceivedProcessor.php.html#316"><circle cx="696.9" cy="310.4" r="7.9" class="bubble-warning"><title>App\Handlers\Processors\PaymentReceivedProcessor::saveToFallbackFile — Coverage: 88.5% | Lines: 26 | Complexity: 6</title></circle></a>
+ <a href="Processors/PaymentReceivedProcessor.php.html#381"><circle cx="720.0" cy="317.0" r="7.6" class="bubble-success"><title>App\Handlers\Processors\PaymentReceivedProcessor::logDoublePayment — Coverage: 91.7% | Lines: 24 | Complexity: 5</title></circle></a>
+ <a href="Processors/PaymentReceivedProcessor.php.html#353"><circle cx="735.0" cy="303.8" r="6.2" class="bubble-success"><title>App\Handlers\Processors\PaymentReceivedProcessor::attemptLicenseDelivery — Coverage: 93.8% | Lines: 16 | Complexity: 7</title></circle></a>
+ <a href="Processors/PaymentReceivedProcessor.php.html#441"><circle cx="780.0" cy="323.6" r="5.4" class="bubble-success"><title>App\Handlers\Processors\PaymentReceivedProcessor::logPerformance — Coverage: 100.0% | Lines: 12 | Complexity: 4</title></circle></a>
+ <a href="Processors/StripeCheckoutCompletedProcessor.php.html#179"><circle cx="708.0" cy="303.8" r="4.9" class="bubble-success"><title>App\Handlers\Processors\StripeCheckoutCompletedProcessor::attemptLicenseDelivery — Coverage: 90.0% | Lines: 10 | Complexity: 7</title></circle></a>
+ <a href="Processors/PaymentReceivedProcessor.php.html#28"><circle cx="780.0" cy="343.4" r="4.7" class="bubble-success"><title>App\Handlers\Processors\PaymentReceivedProcessor::__construct — Coverage: 100.0% | Lines: 9 | Complexity: 1</title></circle></a>
+ <a href="Processors/StripeCheckoutCompletedProcessor.php.html#28"><circle cx="780.0" cy="343.4" r="4.4" class="bubble-success"><title>App\Handlers\Processors\StripeCheckoutCompletedProcessor::__construct — Coverage: 100.0% | Lines: 8 | Complexity: 1</title></circle></a>
+ <a href="Processors/PaymentReceivedProcessor.php.html#426"><circle cx="780.0" cy="330.2" r="4.0" class="bubble-success"><title>App\Handlers\Processors\PaymentReceivedProcessor::resolveTargetPlan — Coverage: 100.0% | Lines: 6 | Complexity: 3</title></circle></a>
+ <a href="Processors/StripeCheckoutCompletedProcessor.php.html#167"><circle cx="660.0" cy="330.2" r="4.0" class="bubble-warning"><title>App\Handlers\Processors\StripeCheckoutCompletedProcessor::resolveTargetPlan — Coverage: 83.3% | Lines: 6 | Complexity: 3</title></circle></a>
+ <a href="WebhookHandler.php.html#21"><circle cx="780.0" cy="336.8" r="4.0" class="bubble-success"><title>App\Handlers\WebhookHandler::handle — Coverage: 100.0% | Lines: 5 | Complexity: 2</title></circle></a>
+ <a href="StripeWebhookHandler.php.html#22"><circle cx="780.0" cy="336.8" r="4.0" class="bubble-success"><title>App\Handlers\StripeWebhookHandler::handle — Coverage: 100.0% | Lines: 4 | Complexity: 2</title></circle></a>
+ <a href="StripeWebhookHandler.php.html#14"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Handlers\StripeWebhookHandler::__construct — Coverage: 100.0% | Lines: 2 | Complexity: 1</title></circle></a>
+ <a href="WebhookHandler.php.html#13"><circle cx="780.0" cy="343.4" r="4.0" class="bubble-success"><title>App\Handlers\WebhookHandler::__construct — Coverage: 100.0% | Lines: 2 | Complexity: 1</title></circle></a>
+</svg>
+     </div>
+    </div>
+    <div class="col-md-6 dashboard-column">
+     <h3>&nbsp;</h3>
+     <p class="text-muted small">Sorted by descending CRAP (Change Risk Anti-Patterns) index.</p>
+     <div class="scrollbox">
+<table class="table">
+ <thead>
+  <tr>
+   <th>Method</th>
+   <th class="text-right"><abbr title="Change Risk Anti-Patterns (CRAP) Index">CRAP</abbr></th>
+   <th class="text-right">Coverage</th>
+  </tr>
+ </thead>
+ <tbody>
+  <tr><td><a href="Processors/PaymentReceivedProcessor.php.html#50">App\Handlers\Processors\PaymentReceivedProcessor::process</a></td><td class="text-right">46.49</td><td class="text-right">91.0%</td></tr>
+  <tr><td><a href="Processors/StripeCheckoutCompletedProcessor.php.html#48">App\Handlers\Processors\StripeCheckoutCompletedProcessor::process</a></td><td class="text-right">34.37</td><td class="text-right">78.4%</td></tr>
+  <tr><td><a href="Processors/StripeCheckoutCompletedProcessor.php.html#179">App\Handlers\Processors\StripeCheckoutCompletedProcessor::attemptLicenseDelivery</a></td><td class="text-right">7.05</td><td class="text-right">90.0%</td></tr>
+  <tr><td><a href="Processors/PaymentReceivedProcessor.php.html#353">App\Handlers\Processors\PaymentReceivedProcessor::attemptLicenseDelivery</a></td><td class="text-right">7.01</td><td class="text-right">93.8%</td></tr>
+  <tr><td><a href="Processors/PaymentReceivedProcessor.php.html#316">App\Handlers\Processors\PaymentReceivedProcessor::saveToFallbackFile</a></td><td class="text-right">6.06</td><td class="text-right">88.5%</td></tr>
+  <tr><td><a href="Processors/PaymentReceivedProcessor.php.html#381">App\Handlers\Processors\PaymentReceivedProcessor::logDoublePayment</a></td><td class="text-right">5.01</td><td class="text-right">91.7%</td></tr>
+  <tr><td><a href="Processors/PaymentReceivedProcessor.php.html#441">App\Handlers\Processors\PaymentReceivedProcessor::logPerformance</a></td><td class="text-right">4</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Processors/StripeCheckoutCompletedProcessor.php.html#167">App\Handlers\Processors\StripeCheckoutCompletedProcessor::resolveTargetPlan</a></td><td class="text-right">3.04</td><td class="text-right">83.3%</td></tr>
+  <tr><td><a href="Processors/PaymentReceivedProcessor.php.html#426">App\Handlers\Processors\PaymentReceivedProcessor::resolveTargetPlan</a></td><td class="text-right">3</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="StripeWebhookHandler.php.html#22">App\Handlers\StripeWebhookHandler::handle</a></td><td class="text-right">2</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="WebhookHandler.php.html#21">App\Handlers\WebhookHandler::handle</a></td><td class="text-right">2</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Processors/PaymentReceivedProcessor.php.html#28">App\Handlers\Processors\PaymentReceivedProcessor::__construct</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="Processors/StripeCheckoutCompletedProcessor.php.html#28">App\Handlers\Processors\StripeCheckoutCompletedProcessor::__construct</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="StripeWebhookHandler.php.html#14">App\Handlers\StripeWebhookHandler::__construct</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+  <tr><td><a href="WebhookHandler.php.html#13">App\Handlers\WebhookHandler::__construct</a></td><td class="text-right">1</td><td class="text-right">100.0%</td></tr>
+ </tbody>
+</table>
+     </div>
+    </div>
+   </div>
+   <footer>
+    <hr/>
+    <p>
+     <small>Generated by <a href="https://github.com/sebastianbergmann/php-code-coverage" target="_top">php-code-coverage 14.1.8</a> using <a href="https://www.php.net/" target="_top">PHP 8.4.21</a> and <a href="https://phpunit.de/">PHPUnit 13.1.10</a> at Sun Jun 7 2:46:45 UTC 2026.</small>
+    </p>
+   </footer>
+  </div>
+ </body>
+</html>

@@ -32,7 +32,7 @@ class CampaignController
         header('Content-Type: application/json; charset=utf-8');
 
         if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'OPTIONS') {
-            exit(0);
+            return;
         }
 
         try {

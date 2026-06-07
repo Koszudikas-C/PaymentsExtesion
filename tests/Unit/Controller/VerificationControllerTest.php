@@ -144,4 +144,130 @@ class VerificationControllerTest extends TestCase
         $this->assertEquals('inactive', $response['status']);
         $this->assertStringContainsString('A licença vinculada a este perfil está inativa ou expirada', $response['message']);
     }
+
+    public function testHandleRequestOptions()
+    {
+        $_SERVER['REQUEST_METHOD'] = 'OPTIONS';
+        $controller = new VerificationController($this->customerRepo, $this->logger);
+
+        ob_start();
+        $controller->handleRequest();
+        $output = ob_get_clean();
+
+        $this->assertEmpty($output);
+        unset($_SERVER['REQUEST_METHOD']);
+    }
+
+    public function testHandleRequestException()
+    {
+        $this->setRequestParams([
+            'chrome_identity_id' => 'chrome_user_123',
+            'extension_id' => 'gpjjhlfkdaakcpllhfobnmdjnbgpefgc'
+        ]);
+
+        $this->customerRepo->method('findByChromeIdentityId')->willThrowException(new \Exception('DB failure'));
+
+        $controller = new VerificationController($this->customerRepo, $this->logger);
+
+        ob_start();
+        $controller->handleRequest();
+        $output = ob_get_clean();
+
+        $response = json_decode($output, true);
+        $this->assertEquals('error', $response['status']);
+        $this->assertEquals(500, http_response_code());
+    }
+
+    public function testHandleRequestFallbackToEmailAutoLink()
+    {
+        $this->setRequestParams([
+            'chrome_identity_id' => 'chrome_new_123',
+            'extension_id' => 'gpjjhlfkdaakcpllhfobnmdjnbgpefgc',
+            'email' => 'fallback@example.com'
+        ]);
+
+        $customer = new Customer('Fallback User', 'fallback@example.com', '5511999999999');
+        $customer->markAsPaid('pay_999');
+        $customer->setPlan('LIFETIME');
+
+        $this->customerRepo->method('findByChromeIdentityId')->willReturn(null);
+        $this->customerRepo->method('findByEmail')->willReturn($customer);
+        $this->customerRepo->expects($this->once())->method('save')->with($customer);
+
+        $controller = new VerificationController($this->customerRepo, $this->logger);
+
+        ob_start();
+        $controller->handleRequest();
+        $output = ob_get_clean();
+
+        $response = json_decode($output, true);
+        $this->assertEquals('active', $response['status']);
+        $this->assertEquals('chrome_new_123', $customer->getChromeIdentityId());
+    }
+
+    public function testHandleRequestFallbackToEmailConflict()
+    {
+        $this->setRequestParams([
+            'chrome_identity_id' => 'chrome_new_123',
+            'extension_id' => 'gpjjhlfkdaakcpllhfobnmdjnbgpefgc',
+            'email' => 'conflict@example.com'
+        ]);
+
+        $customer = new Customer('Conflict User', 'conflict@example.com', '5511999999999');
+        $customer->setChromeIdentityId('chrome_old_999');
+
+        $this->customerRepo->method('findByChromeIdentityId')->willReturn(null);
+        $this->customerRepo->method('findByEmail')->willReturn($customer);
+        $this->customerRepo->expects($this->never())->method('save');
+
+        $controller = new VerificationController($this->customerRepo, $this->logger);
+
+        ob_start();
+        $controller->handleRequest();
+        $output = ob_get_clean();
+
+        $response = json_decode($output, true);
+        $this->assertEquals('conflict', $response['status']);
+        $this->assertStringContainsString('outro perfil', $response['message']);
+    }
+
+    public function testHandleRequestWithInvalidEmailIsSanitizedToNull()
+    {
+        $this->setRequestParams([
+            'email' => 'invalid-email',
+            'chrome_identity_id' => 'c1',
+            'extension_id' => 'gpjjhlfkdaakcpllhfobnmdjnbgpefgc'
+        ]);
+
+        $this->customerRepo->method('findByChromeIdentityId')->willReturn(null);
+
+        $controller = new VerificationController($this->customerRepo, $this->logger);
+
+        ob_start();
+        $controller->handleRequest();
+        $output = ob_get_clean();
+
+        $response = json_decode($output, true);
+        $this->assertEquals('not_found', $response['status']);
+        $this->assertStringContainsString('Nenhuma licença', $response['message']);
+    }
+
+    public function testHandleRequestWithInvalidExtensionIdIsRejected()
+    {
+        $this->setRequestParams([
+            'email' => 'test@test.com',
+            'chrome_identity_id' => 'c1',
+            'extension_id' => 'invalid-ext'
+        ]);
+
+        $controller = new VerificationController($this->customerRepo, $this->logger);
+
+        ob_start();
+        $controller->handleRequest();
+        $output = ob_get_clean();
+
+        $response = json_decode($output, true);
+        $this->assertEquals('error', $response['status']);
+        $this->assertStringContainsString('Acesso não autorizado', $response['message']);
+    }
 }

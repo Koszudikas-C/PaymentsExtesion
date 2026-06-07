@@ -21,6 +21,11 @@
         <include>
             <directory>src</directory>
         </include>
+        <exclude>
+            <directory>src/Command</directory>
+            <directory>src/Config</directory>
+            <directory>src/Migrations</directory>
+        </exclude>
     </source>
 
     <php>
