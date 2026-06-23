@@ -26,7 +26,7 @@
         "symfony/var-exporter": "^7.4",
         "doctrine/migrations": "^3.9",
         "bramus/router": "^1.6",
-        "symfony/console": "^8.0",
+        "symfony/console": "^7.4",
         "team-reflex/discord-php": "^10.48",
         "stripe/stripe-php": "^20.2"
     },
@@ -34,6 +34,10 @@
         "phpunit/phpunit": "^13.1"
     },
     "config": {
-        "platform-check": false
+        "platform-check": false,
+        "platform": {
+            "php": "8.3.30",
+            "ext-redis": "6.1.0"
+        }
     }
 }
