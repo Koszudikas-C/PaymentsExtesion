@@ -99,5 +99,21 @@ namespace Tests\Unit\Services {
 
             $this->assertTrue($this->testHandler->hasErrorThatContains('Error sending webhook to LandingPage'));
         }
+
+        public function testNotifySaleWithDisableSsl()
+        {
+            global $mockCurlResponse, $mockCurlInfoHttpCode, $mockCurlError;
+            $mockCurlResponse = 'ok';
+            $mockCurlInfoHttpCode = 200;
+            $mockCurlError = '';
+
+            $service = new LandingPageSyncService('http://test.webhook.url', true);
+            $customer = new Customer('Test', 'test@example.com', '123');
+            $customer->setPlan('LIFETIME');
+
+            $service->notifySale($customer, $this->logger, 15);
+
+            $this->assertTrue($this->testHandler->hasInfoThatContains('Webhook sent to LandingPage'));
+        }
     }
 }

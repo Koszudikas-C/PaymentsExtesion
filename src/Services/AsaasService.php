@@ -10,12 +10,14 @@ class AsaasService implements PaymentGatewayInterface
     private string $baseUrl;
     private string $accessToken;
     private string $appName;
+    private bool $disableSslVerify;
 
-    public function __construct(string $baseUrl, string $accessToken, string $appName)
+    public function __construct(string $baseUrl, string $accessToken, string $appName, bool $disableSslVerify = false)
     {
         $this->baseUrl = $baseUrl;
         $this->accessToken = $accessToken;
         $this->appName = $appName;
+        $this->disableSslVerify = $disableSslVerify;
     }
 
     public function getCustomerInfo(string $customerId, Logger $log): ?array
@@ -29,6 +31,10 @@ class AsaasService implements PaymentGatewayInterface
             "accept: application/json",
             "access_token: {$this->accessToken}"
         ]);
+        if ($this->disableSslVerify) {
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        }
 
         $response = curl_exec($ch);
         if (curl_errno($ch)) {
@@ -67,6 +73,10 @@ class AsaasService implements PaymentGatewayInterface
             "content-type: application/json",
             "access_token: {$this->accessToken}"
         ]);
+        if ($this->disableSslVerify) {
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        }
 
         $response = curl_exec($ch);
         if (curl_errno($ch)) {

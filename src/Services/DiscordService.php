@@ -8,11 +8,13 @@ class DiscordService implements DiscordServiceInterface
 {
     private string $botToken;
     private string $channelId;
+    private bool $disableSslVerify;
 
-    public function __construct(string $botToken, string $channelId)
+    public function __construct(string $botToken, string $channelId, bool $disableSslVerify = false)
     {
         $this->botToken = $botToken;
         $this->channelId = $channelId;
+        $this->disableSslVerify = $disableSslVerify;
     }
 
     public function sendLog(string $message, string $level = 'info'): void
@@ -66,6 +68,10 @@ class DiscordService implements DiscordServiceInterface
             'Authorization: Bot ' . $this->botToken
         ]);
         curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+        if ($this->disableSslVerify) {
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        }
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);

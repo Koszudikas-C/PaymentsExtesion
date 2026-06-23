@@ -47,4 +47,15 @@ class DiscordServiceTest extends TestCase
         $this->expectOutputRegex('/.*/');
         $this->assertTrue(true);
     }
+
+    public function testSendEmbedWithDisableSsl()
+    {
+        $service = new DiscordService('invalid_token', '123456', true);
+        
+        ob_start();
+        $service->sendEmbed('Test', 'Test description', 0);
+        ob_end_clean();
+
+        $this->assertTrue(true);
+    }
 }

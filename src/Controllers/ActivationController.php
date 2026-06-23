@@ -35,13 +35,13 @@ class ActivationController
             $params = $this->captureAndSanitizeInputs();
 
             if (!$this->validateParams($params['chrome_identity_id'], $params['email'], $params['extension_id'], $params['license_key'])) {
-                $this->respondWithError(400, 'Parâmetros chrome_identity_id, email, extension_id e license_key são obrigatórios.');
+                $this->respondWithError(400, 'Parameters chrome_identity_id, email, extension_id, and license_key are required.');
                 return;
             }
 
             if (!$this->isValidExtensionId($params['extension_id'])) {
                 $this->logger->warning('Unrecognized extension ID attempted activation', ['extension_id' => $params['extension_id']]);
-                $this->respondWithError(403, 'Acesso não autorizado para esta extensão.');
+                $this->respondWithError(403, 'Unauthorized access for this extension.');
                 return;
             }
 
@@ -54,7 +54,7 @@ class ActivationController
             if (!$customer || $customer->getEmail() !== $params['email']) {
                 $this->respondWithJson(200, [
                     'status' => 'invalid_key',
-                    'message' => 'Chave de licença ou e-mail inválido.'
+                    'message' => 'Invalid license key or email.'
                 ]);
                 return;
             }
@@ -63,7 +63,7 @@ class ActivationController
             if ($customer->getPaymentStatus() !== 'RECEIVED' || !$customer->isLicenseActive()) {
                 $this->respondWithJson(200, [
                     'status' => 'inactive',
-                    'message' => 'A sua licença está inativa ou expirada. Efetue o pagamento para ativar.'
+                    'message' => 'Your license is inactive or expired. Please make a payment to activate.'
                 ]);
                 return;
             }
@@ -106,7 +106,7 @@ class ActivationController
                     ]);
                     $this->respondWithJson(200, [
                         'status' => 'conflict',
-                        'message' => 'Esta licença já está ativada em outro perfil ou dispositivo do Chrome. Deseja transferir a ativação para este perfil?',
+                        'message' => 'This license is already activated on another Chrome profile or device. Do you want to transfer the activation to this profile?',
                         'can_force' => true
                     ]);
                     return;
@@ -147,7 +147,7 @@ class ActivationController
 
             $this->respondWithJson(200, [
                 'status' => 'success',
-                'message' => 'Extensão ativada com sucesso!',
+                'message' => 'Extension successfully activated!',
                 'licenseKey' => $customer->getLicenseKey(),
                 'plan' => $customer->getPlan(),
                 'expiresAt' => $customer->getLicenseExpiresAt() ? $customer->getLicenseExpiresAt()->format('Y-m-d H:i:s') : null
@@ -155,7 +155,7 @@ class ActivationController
 
         } catch (\Throwable $e) {
             $this->logException($e);
-            $this->respondWithError(500, 'Erro interno de processamento do servidor.');
+            $this->respondWithError(500, 'Internal server error.');
         }
     }
 

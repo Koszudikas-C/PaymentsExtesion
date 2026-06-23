@@ -137,5 +137,19 @@ namespace Tests\Unit\Services {
             $this->assertFalse($result);
             $this->assertTrue($this->testHandler->hasErrorThatContains('ASAAS API Error updating payment link'));
         }
+
+        public function testGetCustomerInfoWithDisableSsl()
+        {
+            global $mockCurlResponse, $mockCurlInfoHttpCode;
+            $mockCurlResponse = json_encode(['id' => 'cus_123', 'email' => 'test@example.com', 'name' => 'John']);
+            $mockCurlInfoHttpCode = 200;
+
+            $service = new AsaasService('sandbox.asaas.com', 'fake_token', 'MyApp', true);
+            $result = $service->getCustomerInfo('cus_123', $this->logger);
+
+            $this->assertIsArray($result);
+            $this->assertEquals('test@example.com', $result['email']);
+            $this->assertFalse($this->testHandler->hasErrorRecords());
+        }
     }
 }

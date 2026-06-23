@@ -9,10 +9,12 @@ use Monolog\Logger;
 class LandingPageSyncService implements LandingPageSyncServiceInterface
 {
     private string $webhookUrl;
+    private bool $disableSslVerify;
 
-    public function __construct(string $webhookUrl)
+    public function __construct(string $webhookUrl, bool $disableSslVerify = false)
     {
         $this->webhookUrl = $webhookUrl;
+        $this->disableSslVerify = $disableSslVerify;
     }
 
     public function notifySale(Customer $customer, Logger $log, int $currentCount): void
@@ -45,6 +47,10 @@ class LandingPageSyncService implements LandingPageSyncServiceInterface
         ]);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+        if ($this->disableSslVerify) {
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        }
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);

@@ -95,27 +95,27 @@ class FeedbackController
     private function sendDiscordNotification(Feedback $feedback, $customer, ?string $identifier): void
     {
         $title = $feedback->getType() === 'FEATURE_REQUEST'
-            ? '🚀 Nova Ideia / Proposta de Funcionalidade'
-            : '⭐ Nova Avaliação do Usuário';
+            ? '🚀 New Idea / Feature Proposal'
+            : '⭐ New User Review';
 
         $color = $feedback->getType() === 'FEATURE_REQUEST' ? 0x3498db : 0xf1c40f; // Azul ou Amarelo
 
-        $desc = "**Mensagem:**\n" . $feedback->getMessage();
+        $desc = "**Message:**\n" . $feedback->getMessage();
 
         $fields = [];
 
         if ($feedback->getRating() !== null) {
             $stars = str_repeat('⭐', max(1, min(5, $feedback->getRating())));
-            $fields[] = ['name' => 'Nota', 'value' => $stars, 'inline' => true];
+            $fields[] = ['name' => 'Rating', 'value' => $stars, 'inline' => true];
         }
 
         if ($customer) {
-            $fields[] = ['name' => 'Cliente', 'value' => $customer->getName(), 'inline' => true];
+            $fields[] = ['name' => 'Customer', 'value' => $customer->getName(), 'inline' => true];
             $fields[] = ['name' => 'Email', 'value' => $customer->getEmail(), 'inline' => true];
         } elseif ($identifier) {
-            $fields[] = ['name' => 'Identificador Fornecido', 'value' => $identifier, 'inline' => true];
+            $fields[] = ['name' => 'Provided Identifier', 'value' => $identifier, 'inline' => true];
         } else {
-            $fields[] = ['name' => 'Usuário', 'value' => 'Anônimo', 'inline' => true];
+            $fields[] = ['name' => 'User', 'value' => 'Anonymous', 'inline' => true];
         }
 
         $this->discordService->sendEmbed($title, $desc, $color, $fields);

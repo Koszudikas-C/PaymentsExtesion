@@ -43,7 +43,7 @@ class ActivationControllerTest extends TestCase
 
         $response = json_decode($output, true);
         $this->assertEquals('error', $response['status']);
-        $this->assertStringContainsString('Parâmetros chrome_identity_id, email, extension_id e license_key são obrigatórios', $response['message']);
+        $this->assertStringContainsString('Parameters chrome_identity_id, email, extension_id, and license_key are required.', $response['message']);
     }
 
     public function testHandleRequestWithInvalidEmailIsSanitizedToNull()
@@ -65,7 +65,7 @@ class ActivationControllerTest extends TestCase
 
         $response = json_decode($output, true);
         $this->assertEquals('error', $response['status']);
-        $this->assertStringContainsString('Parâmetros', $response['message']);
+        $this->assertStringContainsString('Parameters chrome_identity_id, email, extension_id, and license_key are required.', $response['message']);
     }
 
     public function testHandleRequestCustomerNotFoundReturns200WithInvalidKey()
@@ -90,7 +90,7 @@ class ActivationControllerTest extends TestCase
 
         $response = json_decode($output, true);
         $this->assertEquals('invalid_key', $response['status']);
-        $this->assertStringContainsString('Chave de licença ou e-mail inválido', $response['message']);
+        $this->assertStringContainsString('Invalid license key or email.', $response['message']);
     }
 
     public function testHandleRequestInvalidLicenseKeyReturns200WithInvalidKey()
@@ -116,7 +116,7 @@ class ActivationControllerTest extends TestCase
 
         $response = json_decode($output, true);
         $this->assertEquals('invalid_key', $response['status']);
-        $this->assertStringContainsString('Chave de licença ou e-mail inválido', $response['message']);
+        $this->assertStringContainsString('Invalid license key or email.', $response['message']);
     }
 
     public function testHandleRequestActiveCustomerReturnsSuccessAndLinksChromeId()
@@ -157,7 +157,7 @@ class ActivationControllerTest extends TestCase
         $this->assertEquals('success', $response['status']);
         $this->assertEquals('lic_key_abc', $response['licenseKey']);
         $this->assertEquals('LIFETIME', $response['plan']);
-        $this->assertStringContainsString('Extensão ativada com sucesso', $response['message']);
+        $this->assertStringContainsString('Extension successfully activated!', $response['message']);
     }
 
     public function testHandleRequestActiveCustomerDeviceConflictReturnsConflict()
@@ -189,7 +189,7 @@ class ActivationControllerTest extends TestCase
         $response = json_decode($output, true);
         $this->assertEquals('conflict', $response['status']);
         $this->assertTrue($response['can_force']);
-        $this->assertStringContainsString('Esta licença já está ativada em outro perfil', $response['message']);
+        $this->assertStringContainsString('This license is already activated on another Chrome profile or device. Do you want to transfer the activation to this profile?', $response['message']);
     }
 
     public function testHandleRequestActiveCustomerForceResetOverwritesChromeId()
@@ -256,7 +256,7 @@ class ActivationControllerTest extends TestCase
 
         $response = json_decode($output, true);
         $this->assertEquals('inactive', $response['status']);
-        $this->assertStringContainsString('A sua licença está inativa ou expirada', $response['message']);
+        $this->assertStringContainsString('Your license is inactive or expired. Please make a payment to activate.', $response['message']);
     }
 
     public function testHandleRequestActiveCustomerUnbindsExistingChromeIdFromOtherCustomer()

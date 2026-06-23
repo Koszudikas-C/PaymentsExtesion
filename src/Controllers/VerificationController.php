@@ -5,18 +5,19 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Interfaces\Repositories\CustomerRepositoryInterface;
+use App\Services\CustomerValidationService;
 use Monolog\Logger;
 
 class VerificationController
 {
-    private CustomerRepositoryInterface $customerRepository;
+    private CustomerValidationService $validationService;
     private Logger $logger;
 
     public function __construct(
-        CustomerRepositoryInterface $customerRepository,
+        CustomerValidationService $validationService,
         Logger $logger
     ) {
-        $this->customerRepository = $customerRepository;
+        $this->validationService = $validationService;
         $this->logger = $logger;
     }
 
@@ -35,58 +36,26 @@ class VerificationController
 
             // chrome_identity_id, extension_id são sempre obrigatórios; email opcional para fallback
             if (empty($params['chrome_identity_id']) || empty($params['extension_id'])) {
-                $this->respondWithError(400, 'Parâmetros chrome_identity_id e extension_id são obrigatórios.');
+                $this->respondWithError(400, 'Parameters chrome_identity_id and extension_id are required.');
                 return;
             }
 
             if (!$this->isValidExtensionId($params['extension_id'])) {
                 $this->logger->warning('Unrecognized extension ID attempted verification', ['extension_id' => $params['extension_id']]);
-                $this->respondWithError(403, 'Acesso não autorizado para esta extensão.');
+                $this->respondWithError(403, 'Unauthorized access for this extension.');
                 return;
             }
 
-            // Primeiro tenta localizar pelo chrome_identity_id
-            $startChromeLookup = microtime(true);
-            $customer = $this->customerRepository->findByChromeIdentityId($params['chrome_identity_id']);
-            $durationChromeLookup = round((microtime(true) - $startChromeLookup) * 1000, 2);
-            $this->logPerformance('CustomerRepository', 'findByChromeIdentityId', $durationChromeLookup);
+            // Validação usando o serviço compartilhado
+            $customerResult = $this->validationService->validateRequest($params['chrome_identity_id'], $params['email']);
 
-            // Se não encontrou e email foi fornecido, tenta buscar pelo email
-            if (!$customer && !empty($params['email'])) {
-                $startEmailLookup = microtime(true);
-                $customer = $this->customerRepository->findByEmail($params['email']);
-                $durationEmailLookup = round((microtime(true) - $startEmailLookup) * 1000, 2);
-                $this->logPerformance('CustomerRepository', 'findByEmail', $durationEmailLookup, 'Fallback');
-                
-                if ($customer) {
-                    $savedChromeId = $customer->getChromeIdentityId();
-                    
-                    if (empty($savedChromeId)) {
-                        // Se encontrou pelo email mas ainda não há chrome_identity_id associado, vincula agora
-                        $startSave = microtime(true);
-                        $customer->setChromeIdentityId($params['chrome_identity_id']);
-                        $this->customerRepository->save($customer);
-                        $durationSave = round((microtime(true) - $startSave) * 1000, 2);
-                        $this->logPerformance('CustomerRepository', 'save', $durationSave, 'Auto Link Chrome ID');
-                    } elseif ($savedChromeId !== $params['chrome_identity_id']) {
-                        // Conflito: O email existe mas está vinculado a outro chrome_identity_id.
-                        // A verificação silenciosa deve falhar para não permitir uso duplo.
-                        $this->respondWithJson(200, [
-                            'status' => 'conflict',
-                            'message' => 'Sua licença está ativada em outro perfil ou dispositivo. Faça a ativação novamente neste perfil para transferir o uso.'
-                        ]);
-                        return;
-                    }
-                }
-            }
-
-            if (!$customer) {
-                $this->respondWithJson(200, [
-                    'status' => 'not_found',
-                    'message' => 'Nenhuma licença ativa vinculada a este perfil.'
-                ]);
+            if (is_array($customerResult)) {
+                // Retorna erro ou conflito
+                $this->respondWithJson(200, $customerResult);
                 return;
             }
+
+            $customer = $customerResult;
 
             if ($customer->getPaymentStatus() === 'RECEIVED' && $customer->isLicenseActive()) {
                 $duration = round((microtime(true) - $startTime) * 1000, 2);
@@ -94,7 +63,7 @@ class VerificationController
 
                 $this->respondWithJson(200, [
                     'status' => 'active',
-                    'message' => 'Licença ativa e válida.',
+                    'message' => 'Active and valid license.',
                     'plan' => $customer->getPlan(),
                     'expiresAt' => $customer->getLicenseExpiresAt() ? $customer->getLicenseExpiresAt()->format('Y-m-d H:i:s') : null
                 ]);
@@ -106,12 +75,12 @@ class VerificationController
 
             $this->respondWithJson(200, [
                 'status' => 'inactive',
-                'message' => 'A licença vinculada a este perfil está inativa ou expirada.'
+                'message' => 'The license linked to this profile is inactive or expired.'
             ]);
 
         } catch (\Throwable $e) {
             $this->logException($e);
-            $this->respondWithError(500, 'Erro interno de processamento do servidor.');
+            $this->respondWithError(500, 'Internal server error.');
         }
     }
 

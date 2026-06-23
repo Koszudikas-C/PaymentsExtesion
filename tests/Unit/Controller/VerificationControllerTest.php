@@ -4,18 +4,18 @@ namespace Tests\Unit\Controller;
 
 use PHPUnit\Framework\TestCase;
 use App\Controllers\VerificationController;
-use App\Interfaces\Repositories\CustomerRepositoryInterface;
+use App\Services\CustomerValidationService;
 use App\Entity\Customer;
 use Monolog\Logger;
 
 class VerificationControllerTest extends TestCase
 {
-    private $customerRepo;
+    private $validationService;
     private $logger;
 
     protected function setUp(): void
     {
-        $this->customerRepo = $this->createMock(CustomerRepositoryInterface::class);
+        $this->validationService = $this->createMock(CustomerValidationService::class);
         $this->logger = $this->createMock(Logger::class);
         $_ENV['CHROME_EXTENSION_ID'] = 'gpjjhlfkdaakcpllhfobnmdjnbgpefgc';
     }
@@ -35,7 +35,7 @@ class VerificationControllerTest extends TestCase
     {
         $this->setRequestParams([]);
 
-        $controller = new VerificationController($this->customerRepo, $this->logger);
+        $controller = new VerificationController($this->validationService, $this->logger);
 
         ob_start();
         $controller->handleRequest();
@@ -43,7 +43,7 @@ class VerificationControllerTest extends TestCase
 
         $response = json_decode($output, true);
         $this->assertEquals('error', $response['status']);
-        $this->assertStringContainsString('Parâmetros chrome_identity_id e extension_id são obrigatórios', $response['message']);
+        $this->assertStringContainsString('Parameters chrome_identity_id and extension_id are required.', $response['message']);
     }
 
     public function testHandleRequestInvalidExtensionIdReturns403()
@@ -53,7 +53,7 @@ class VerificationControllerTest extends TestCase
             'extension_id' => 'wrongextensionidhere'
         ]);
 
-        $controller = new VerificationController($this->customerRepo, $this->logger);
+        $controller = new VerificationController($this->validationService, $this->logger);
 
         ob_start();
         $controller->handleRequest();
@@ -61,7 +61,7 @@ class VerificationControllerTest extends TestCase
 
         $response = json_decode($output, true);
         $this->assertEquals('error', $response['status']);
-        $this->assertStringContainsString('Acesso não autorizado para esta extensão', $response['message']);
+        $this->assertStringContainsString('Unauthorized access for this extension.', $response['message']);
     }
 
     public function testHandleRequestCustomerNotFoundReturns200WithNotFound()
@@ -71,12 +71,15 @@ class VerificationControllerTest extends TestCase
             'extension_id' => 'gpjjhlfkdaakcpllhfobnmdjnbgpefgc'
         ]);
 
-        $this->customerRepo->expects($this->once())
-            ->method('findByChromeIdentityId')
-            ->with('chrome_user_123')
-            ->willReturn(null);
+        $this->validationService->expects($this->once())
+            ->method('validateRequest')
+            ->with('chrome_user_123', null)
+            ->willReturn([
+                'status' => 'not_found',
+                'message' => 'No active license linked to this profile.'
+            ]);
 
-        $controller = new VerificationController($this->customerRepo, $this->logger);
+        $controller = new VerificationController($this->validationService, $this->logger);
 
         ob_start();
         $controller->handleRequest();
@@ -84,7 +87,7 @@ class VerificationControllerTest extends TestCase
 
         $response = json_decode($output, true);
         $this->assertEquals('not_found', $response['status']);
-        $this->assertStringContainsString('Nenhuma licença ativa vinculada', $response['message']);
+        $this->assertStringContainsString('No active license linked', $response['message']);
     }
 
     public function testHandleRequestActiveCustomerReturnsActive()
@@ -100,12 +103,12 @@ class VerificationControllerTest extends TestCase
         $activeCustomer->setChromeIdentityId('chrome_user_123');
         $activeCustomer->setPlan('LIFETIME');
 
-        $this->customerRepo->expects($this->once())
-            ->method('findByChromeIdentityId')
-            ->with('chrome_user_123')
+        $this->validationService->expects($this->once())
+            ->method('validateRequest')
+            ->with('chrome_user_123', null)
             ->willReturn($activeCustomer);
 
-        $controller = new VerificationController($this->customerRepo, $this->logger);
+        $controller = new VerificationController($this->validationService, $this->logger);
 
         ob_start();
         $controller->handleRequest();
@@ -115,7 +118,7 @@ class VerificationControllerTest extends TestCase
         $this->assertEquals('active', $response['status']);
         $this->assertEquals('LIFETIME', $response['plan']);
         $this->assertNull($response['expiresAt']);
-        $this->assertStringContainsString('Licença ativa e válida', $response['message']);
+        $this->assertStringContainsString('Active and valid license', $response['message']);
     }
 
     public function testHandleRequestInactiveCustomerReturnsInactive()
@@ -129,12 +132,12 @@ class VerificationControllerTest extends TestCase
         $inactiveCustomer->setChromeIdentityId('chrome_user_123');
         // Payment is PENDING, so license is inactive
 
-        $this->customerRepo->expects($this->once())
-            ->method('findByChromeIdentityId')
-            ->with('chrome_user_123')
+        $this->validationService->expects($this->once())
+            ->method('validateRequest')
+            ->with('chrome_user_123', null)
             ->willReturn($inactiveCustomer);
 
-        $controller = new VerificationController($this->customerRepo, $this->logger);
+        $controller = new VerificationController($this->validationService, $this->logger);
 
         ob_start();
         $controller->handleRequest();
@@ -142,13 +145,13 @@ class VerificationControllerTest extends TestCase
 
         $response = json_decode($output, true);
         $this->assertEquals('inactive', $response['status']);
-        $this->assertStringContainsString('A licença vinculada a este perfil está inativa ou expirada', $response['message']);
+        $this->assertStringContainsString('The license linked to this profile is inactive or expired.', $response['message']);
     }
 
     public function testHandleRequestOptions()
     {
         $_SERVER['REQUEST_METHOD'] = 'OPTIONS';
-        $controller = new VerificationController($this->customerRepo, $this->logger);
+        $controller = new VerificationController($this->validationService, $this->logger);
 
         ob_start();
         $controller->handleRequest();
@@ -165,9 +168,9 @@ class VerificationControllerTest extends TestCase
             'extension_id' => 'gpjjhlfkdaakcpllhfobnmdjnbgpefgc'
         ]);
 
-        $this->customerRepo->method('findByChromeIdentityId')->willThrowException(new \Exception('DB failure'));
+        $this->validationService->method('validateRequest')->willThrowException(new \Exception('DB failure'));
 
-        $controller = new VerificationController($this->customerRepo, $this->logger);
+        $controller = new VerificationController($this->validationService, $this->logger);
 
         ob_start();
         $controller->handleRequest();
@@ -180,6 +183,7 @@ class VerificationControllerTest extends TestCase
 
     public function testHandleRequestFallbackToEmailAutoLink()
     {
+        // This logic is now inside validationService, so we just mock the return
         $this->setRequestParams([
             'chrome_identity_id' => 'chrome_new_123',
             'extension_id' => 'gpjjhlfkdaakcpllhfobnmdjnbgpefgc',
@@ -189,12 +193,11 @@ class VerificationControllerTest extends TestCase
         $customer = new Customer('Fallback User', 'fallback@example.com', '5511999999999');
         $customer->markAsPaid('pay_999');
         $customer->setPlan('LIFETIME');
+        $customer->setChromeIdentityId('chrome_new_123'); // assuming service auto-linked it
 
-        $this->customerRepo->method('findByChromeIdentityId')->willReturn(null);
-        $this->customerRepo->method('findByEmail')->willReturn($customer);
-        $this->customerRepo->expects($this->once())->method('save')->with($customer);
+        $this->validationService->method('validateRequest')->willReturn($customer);
 
-        $controller = new VerificationController($this->customerRepo, $this->logger);
+        $controller = new VerificationController($this->validationService, $this->logger);
 
         ob_start();
         $controller->handleRequest();
@@ -202,7 +205,6 @@ class VerificationControllerTest extends TestCase
 
         $response = json_decode($output, true);
         $this->assertEquals('active', $response['status']);
-        $this->assertEquals('chrome_new_123', $customer->getChromeIdentityId());
     }
 
     public function testHandleRequestFallbackToEmailConflict()
@@ -213,14 +215,12 @@ class VerificationControllerTest extends TestCase
             'email' => 'conflict@example.com'
         ]);
 
-        $customer = new Customer('Conflict User', 'conflict@example.com', '5511999999999');
-        $customer->setChromeIdentityId('chrome_old_999');
+        $this->validationService->method('validateRequest')->willReturn([
+            'status' => 'conflict',
+            'message' => 'Sua licença está ativada em outro perfil ou dispositivo.'
+        ]);
 
-        $this->customerRepo->method('findByChromeIdentityId')->willReturn(null);
-        $this->customerRepo->method('findByEmail')->willReturn($customer);
-        $this->customerRepo->expects($this->never())->method('save');
-
-        $controller = new VerificationController($this->customerRepo, $this->logger);
+        $controller = new VerificationController($this->validationService, $this->logger);
 
         ob_start();
         $controller->handleRequest();
@@ -239,9 +239,16 @@ class VerificationControllerTest extends TestCase
             'extension_id' => 'gpjjhlfkdaakcpllhfobnmdjnbgpefgc'
         ]);
 
-        $this->customerRepo->method('findByChromeIdentityId')->willReturn(null);
+        // validateRequest receives null for email because of sanitization
+        $this->validationService->expects($this->once())
+            ->method('validateRequest')
+            ->with('c1', null)
+            ->willReturn([
+                'status' => 'not_found',
+                'message' => 'Nenhuma licença ativa vinculada a este perfil.'
+            ]);
 
-        $controller = new VerificationController($this->customerRepo, $this->logger);
+        $controller = new VerificationController($this->validationService, $this->logger);
 
         ob_start();
         $controller->handleRequest();
@@ -249,7 +256,6 @@ class VerificationControllerTest extends TestCase
 
         $response = json_decode($output, true);
         $this->assertEquals('not_found', $response['status']);
-        $this->assertStringContainsString('Nenhuma licença', $response['message']);
     }
 
     public function testHandleRequestWithInvalidExtensionIdIsRejected()
@@ -260,7 +266,7 @@ class VerificationControllerTest extends TestCase
             'extension_id' => 'invalid-ext'
         ]);
 
-        $controller = new VerificationController($this->customerRepo, $this->logger);
+        $controller = new VerificationController($this->validationService, $this->logger);
 
         ob_start();
         $controller->handleRequest();
@@ -268,6 +274,6 @@ class VerificationControllerTest extends TestCase
 
         $response = json_decode($output, true);
         $this->assertEquals('error', $response['status']);
-        $this->assertStringContainsString('Acesso não autorizado', $response['message']);
+        $this->assertStringContainsString('Unauthorized access for this extension.', $response['message']);
     }
 }

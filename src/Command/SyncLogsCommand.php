@@ -34,28 +34,28 @@ class SyncLogsCommand extends Command
             'all',
             'a',
             InputOption::VALUE_NONE,
-            'Se definido, sincroniza todos os níveis de log (incluindo INFO)'
+            'If set, synchronizes all log levels (including INFO)'
         );
 
         $this->addOption(
             'performance',
             'p',
             InputOption::VALUE_NONE,
-            'Se definido, sincroniza logs de performance ([PERFORMANCE]) com o Discord'
+            'If set, synchronizes performance logs ([PERFORMANCE]) to Discord'
         );
 
         $this->addOption(
             'continuous',
             'c',
             InputOption::VALUE_NONE,
-            'Executa em loop contínuo monitorando o arquivo de log em tempo real.'
+            'Runs in a continuous loop monitoring the log file in real-time.'
         );
 
         $this->addOption(
             'watch',
             'w',
             InputOption::VALUE_NONE,
-            'Executa em loop contínuo monitorando o arquivo de log em tempo real.'
+            'Runs in a continuous loop monitoring the log file in real-time.'
         );
     }
 
@@ -69,7 +69,7 @@ class SyncLogsCommand extends Command
         $state = $this->loadState();
 
         if ($continuous) {
-            $io->info("Iniciando monitoramento de logs em tempo real (Modo Contínuo)...");
+            $io->info("Starting real-time log monitoring (Continuous Mode)...");
         }
 
         do {
@@ -81,7 +81,7 @@ class SyncLogsCommand extends Command
                     usleep(1000000);
                     continue;
                 }
-                $io->warning("Arquivo de log de hoje não encontrado: {$logPath}");
+                $io->warning("Today's log file not found: {$logPath}");
                 return Command::SUCCESS;
             }
 
@@ -92,7 +92,7 @@ class SyncLogsCommand extends Command
                     usleep(1000000);
                     continue;
                 }
-                $io->error("Não foi possível abrir o arquivo de log.");
+                $io->error("Could not open log file.");
                 return Command::FAILURE;
             }
 
@@ -122,16 +122,16 @@ class SyncLogsCommand extends Command
                               ($syncPerformance && $isPerformance);
 
                 if ($shouldSync) {
-                    $messageStr = $message !== '' ? $message : 'Sem mensagem';
-                    $context = !empty($contextData) ? json_encode($contextData, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : 'Nenhum';
+                    $messageStr = $message !== '' ? $message : 'No message';
+                    $context = !empty($contextData) ? json_encode($contextData, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : 'None';
                     
                     // Evita extrapolar os limites do Discord (max 4096 para descrição, 1024 para campos)
                     if (strlen($messageStr) > 2000) {
-                        $messageStr = mb_strcut($messageStr, 0, 1980, 'UTF-8') . " ... (truncado)";
+                        $messageStr = mb_strcut($messageStr, 0, 1980, 'UTF-8') . " ... (truncated)";
                     }
 
                     if (strlen($context) > 980) {
-                        $context = mb_strcut($context, 0, 960, 'UTF-8') . "\n... (truncado)";
+                        $context = mb_strcut($context, 0, 960, 'UTF-8') . "\n... (truncated)";
                     }
 
                     $isAlert = (strpos($message, '[PERFORMANCE_ALERT]') !== false) || ($isPerformance && ($level === 'ERROR' || $level === 'CRITICAL'));
@@ -152,9 +152,9 @@ class SyncLogsCommand extends Command
                         $messageStr,
                         $color,
                         [
-                            ['name' => 'Canal', 'value' => $data['channel'] ?? 'payments', 'inline' => true],
-                            ['name' => 'Linha', 'value' => (string)$currentLineNum, 'inline' => true],
-                            ['name' => 'Contexto', 'value' => "```json\n$context\n```"]
+                            ['name' => 'Channel', 'value' => $data['channel'] ?? 'payments', 'inline' => true],
+                            ['name' => 'Line', 'value' => (string)$currentLineNum, 'inline' => true],
+                            ['name' => 'Context', 'value' => "```json\n$context\n```"]
                         ]
                     );
                     $syncCount++;
@@ -169,7 +169,7 @@ class SyncLogsCommand extends Command
             }
 
             if ($syncCount > 0) {
-                $io->success("Sincronização concluída. $syncCount novas entradas enviadas ao Discord.");
+                $io->success("Synchronization completed. $syncCount new entries sent to Discord.");
             }
 
             if ($continuous) {

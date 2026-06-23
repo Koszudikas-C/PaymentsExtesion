@@ -21,8 +21,14 @@ class PHPMailerService implements EmailServiceInterface
         return new PHPMailer(true);
     }
 
-    public function sendLicenseEmail(string $to, string $licenseCode, Logger $log, string $customerName = 'Usuário', string $templateName = 'license_email.html'): bool
-    {
+    public function sendLicenseEmail(
+        string $to,
+        string $licenseCode,
+        Logger $log,
+        string $customerName = 'Usuário',
+        string $templateName = 'license_email.html',
+        string $appName = 'Salvar Conversas WhatsApp'
+    ): bool {
         $mail = $this->createMailer();
         try {
             // SMTP Config
@@ -55,7 +61,13 @@ class PHPMailerService implements EmailServiceInterface
 
             // Recipients
             $fromEmail = $this->config['from'] ?? $this->config['username'];
-            $fromName  = $this->config['from_name'] ?? 'Exportador Histórico Pro Licença';
+            if ($appName === 'Export Chat WhatsApp') {
+                $fromName = 'Export Chat WhatsApp License';
+                $subject = 'Your Pro Access Released!';
+            } else {
+                $fromName = 'Salvar Conversas WhatsApp';
+                $subject = 'Seu Acesso Pro Liberado!';
+            }
             $mail->setFrom($fromEmail, $fromName);
             $mail->addAddress($to);
 
@@ -66,13 +78,14 @@ class PHPMailerService implements EmailServiceInterface
                 $body = file_get_contents($templatePath);
                 $body = str_replace('{{customer_name}}', $customerName, $body);
                 $body = str_replace('{{license_key}}', $licenseCode, $body);
+                $body = str_replace('{{app_name}}', $appName, $body);
             } else {
                 $log->warning('Email template not found, using fallback body', ['path' => $templatePath]);
                 $body = "Sua chave de ativacao vitalicia e: <b>{$licenseCode}</b>";
             }
 
             $mail->isHTML(true);
-            $mail->Subject = 'Seu Acesso Pro Liberado!';
+            $mail->Subject = $subject;
             $mail->Body = $body;
 
             $mail->send();

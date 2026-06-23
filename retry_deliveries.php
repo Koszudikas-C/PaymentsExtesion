@@ -108,7 +108,17 @@ foreach ($pendingCustomers as $customer) {
         'attempt' => $customer->getDeliveryFailureCount() + 1
     ]);
 
-    if ($emailService->sendLicenseEmail($customer->getEmail(), $customer->getLicenseKey(), $logger)) {
+    $phone = $customer->getPhone();
+    $email = $customer->getEmail();
+    $isBrPhone = (strpos($phone, '55') === 0 || strpos($phone, '+55') === 0);
+    $isBrEmail = (substr(strtolower($email), -3) === '.br');
+
+    $appName = 'Salvar Conversas WhatsApp';
+    if (!$isBrPhone && !$isBrEmail && ($customer->getName() === 'Usuário Internacional' || strpos($phone, 'unknown') !== false || empty($phone))) {
+        $appName = 'Export Chat WhatsApp';
+    }
+
+    if ($emailService->sendLicenseEmail($customer->getEmail(), $customer->getLicenseKey(), $logger, $customer->getName(), 'license_email.html', $appName)) {
         $customer->markLicenseAsDelivered();
         $successCount++;
     } else {

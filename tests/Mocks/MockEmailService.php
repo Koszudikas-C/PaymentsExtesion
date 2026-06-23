@@ -6,8 +6,14 @@ use Monolog\Logger;
 
 class MockEmailService implements EmailServiceInterface
 {
-    public function sendLicenseEmail(string $to, string $licenseCode, Logger $log, string $customerName = 'Usuário'): bool
-    {
+    public function sendLicenseEmail(
+        string $to,
+        string $licenseCode,
+        Logger $log,
+        string $customerName = 'Usuário',
+        string $templateName = 'license_email.html',
+        string $appName = 'Salvar Conversas WhatsApp'
+    ): bool {
         $log->info("MockEmailService: Simulating email send to {$customerName} ({$to}) with license {$licenseCode}");
         return true;
     }
