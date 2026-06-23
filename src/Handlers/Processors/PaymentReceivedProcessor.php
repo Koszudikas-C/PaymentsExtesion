@@ -50,11 +50,21 @@ class PaymentReceivedProcessor implements WebhookProcessorInterface
     public function process(array $data): void
     {
         $processStart = microtime(true);
-        $payment = $data['payment'];
-        $customerId = $payment['customer'];
+        $payment = $data['payment'] ?? null;
+        if (!is_array($payment)) {
+            $this->logger->error('Invalid or missing payment data in webhook payload');
+            return;
+        }
+
+        $customerId = $payment['customer'] ?? null;
+        if (empty($customerId)) {
+            $this->logger->error('Missing customer ID in payment data');
+            return;
+        }
+
         $paymentId = $payment['id'] ?? '';
 
-        // Evita processamento duplicado do mesmo pagamento (ex: PAYMENT_CONFIRMED e PAYMENT_RECEIVED para o mesmo Pix/cartão)
+        // Avoid duplicate processing of the same payment (e.g., PAYMENT_CONFIRMED and PAYMENT_RECEIVED for the same Pix/card)
         if ($paymentId) {
             try {
                 if ($this->auditLogRepository->hasPaymentBeenProcessed($paymentId)) {
@@ -64,7 +74,7 @@ class PaymentReceivedProcessor implements WebhookProcessorInterface
                     return;
                 }
             } catch (\Throwable $e) {
-                // Se o banco falhar na verificação, loga e segue pelo fluxo normal
+                // If database verification fails, log it and continue with the normal flow
                 $this->logger->error('Error checking if payment was already processed.', ['error' => $e->getMessage()]);
             }
         }
@@ -82,15 +92,15 @@ class PaymentReceivedProcessor implements WebhookProcessorInterface
         }
 
         $email = $customerInfo['email'] ?? '';
-        $name = $customerInfo['name'] ?? 'Usuário';
+        $name = $customerInfo['name'] ?? 'User';
         $whatsapp = $customerInfo['mobilePhone'] ?? $customerInfo['phone'] ?? 'unknown';
 
         $subscriptionId = $payment['subscription'] ?? null;
         $value = isset($payment['value']) ? (float)$payment['value'] : (isset($payment['originalValue']) ? (float)$payment['originalValue'] : 0.0);
 
-        // Determina o plano-alvo pelo valor do pagamento ANTES de qualquer verificação de estado.
-        // CO-CREATOR via link de pagamento Pix NÃO tem campo 'subscription'.
-        // Por isso a detecção deve ser feita por valor, não por presença de subscriptionId.
+        // Determines target plan by payment value BEFORE any state check.
+        // CO-CREATOR via Pix payment link does not have a 'subscription' field.
+        // Therefore detection must be done by value, not by presence of subscriptionId.
         $targetPlan = $this->resolveTargetPlan($value, $subscriptionId);
         $isUpgrade = false;
 
@@ -124,8 +134,8 @@ class PaymentReceivedProcessor implements WebhookProcessorInterface
         } else {
             if ($customer->getPaymentStatus() === 'RECEIVED') {
                 if ($customer->getPlan() === 'LIFETIME') {
-                    // Pagamento duplicado somente se o plano-alvo for novamente LIFETIME.
-                    // Um usuário vitalício comprando CO-CREATOR (29.99 via link Pix) NÃO é duplicata.
+                    // Double payment only if target plan is LIFETIME again.
+                    // A lifetime user buying CO-CREATOR (29.99 via Pix link) is NOT a duplicate.
                     if ($targetPlan === 'LIFETIME') {
                         $this->logDoublePayment($customer, $customerId, $payment);
                         $customer->recordAudit('DOUBLE_PAYMENT_DETECTED', "Double payment received for payment ID: $paymentId. Added to refund queue.");
@@ -136,9 +146,9 @@ class PaymentReceivedProcessor implements WebhookProcessorInterface
                         $this->logPerformance('PaymentReceivedProcessor', 'process', $durationProcess, 'Double Payment');
                         return;
                     }
-                    // targetPlan é CO-CREATOR ou MONTHLY → transição de plano permitida
+                    // targetPlan is CO-CREATOR or MONTHLY → plan transition allowed
                 } elseif ($customer->getPlan() === 'MONTHLY' || $customer->getPlan() === 'CO-CREATOR') {
-                    // Se a renovação for da mesma assinatura ativa, estende o prazo
+                    // If renewal is for the same active subscription, extend deadline
                     if ($subscriptionId && $customer->getSubscriptionId() === $subscriptionId) {
                         $prevExpires = $customer->getLicenseExpiresAt();
                         $prevExpiresStr = $prevExpires ? $prevExpires->format('Y-m-d H:i:s') : 'never';
@@ -161,7 +171,7 @@ class PaymentReceivedProcessor implements WebhookProcessorInterface
                         $this->logPerformance('PaymentReceivedProcessor', 'process', $durationProcess, 'Plan Extended');
                         return;
                     }
-                    // Se for uma assinatura nova/diferente ou nova compra avulsa (LIFETIME), deixa seguir para transição/atualização
+                    // If it's a new/different subscription or new one-off purchase (LIFETIME), let it proceed for transition/upgrade
                 }
             }
         }
@@ -172,7 +182,7 @@ class PaymentReceivedProcessor implements WebhookProcessorInterface
         $oldPlan = $customer->getPlan();
 
         if ($targetPlan === 'CO-CREATOR' || $targetPlan === 'MONTHLY') {
-            // Guarda o plano vitalício como fallback caso a assinatura expire
+            // Keep lifetime plan as fallback in case subscription expires
             if ($oldPlan === 'LIFETIME') {
                 $customer->setFallbackPlan('LIFETIME');
             }
@@ -203,7 +213,7 @@ class PaymentReceivedProcessor implements WebhookProcessorInterface
                 $customer->setLicenseExpiresAt((new \DateTime('now'))->modify('+33 days'));
             }
         } else {
-            // LIFETIME: pagamento avulso
+            // LIFETIME: one-off payment
             if ($oldPlan !== 'LIFETIME') {
                 $customer->recordAudit('PLAN_TRANSITION', "Transitioning plan from {$oldPlan} to LIFETIME.");
             }
@@ -213,7 +223,7 @@ class PaymentReceivedProcessor implements WebhookProcessorInterface
             $customer->setFallbackPlan(null);
         }
         
-        // 2. Tenta gerar/atribuir licença
+        // 2. Try to generate/assign license
         if (!$customer->getLicenseKey()) {
             $attempts = 0;
             $licenseAssigned = false;
@@ -223,8 +233,8 @@ class PaymentReceivedProcessor implements WebhookProcessorInterface
                 $generatedLicense = $this->licenseService->generateLicense($identifier, $this->licenseSalt);
 
                 if ($dbFailed) {
-                    // Se o banco de dados falhou anteriormente, não conseguimos fazer o lookup.
-                    // Nesse caso, atribuímos diretamente em memória para não travar o cliente, e o fallback lidará com isso.
+                    // If database failed earlier, we can't do the lookup.
+                    // In this case, assign in memory to not block the customer, and fallback will handle it.
                     $customer->assignLicense($generatedLicense);
                     $licenseAssigned = true;
                     break;
@@ -366,7 +376,7 @@ class PaymentReceivedProcessor implements WebhookProcessorInterface
         }
 
         $startEmail = microtime(true);
-        $sent = $this->emailService->sendLicenseEmail($customer->getEmail(), $customer->getLicenseKey(), $this->logger, $customer->getName(), $templateName);
+        $sent = $this->emailService->sendLicenseEmail($customer->getEmail(), $customer->getLicenseKey(), $this->logger, $customer->getName(), $templateName, 'Salvar Conversas WhatsApp');
         $durationEmail = round((microtime(true) - $startEmail) * 1000, 2);
         $this->logPerformance('EmailService', 'sendLicenseEmail', $durationEmail);
 

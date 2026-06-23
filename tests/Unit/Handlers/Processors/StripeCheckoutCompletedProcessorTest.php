@@ -216,4 +216,103 @@ class StripeCheckoutCompletedProcessorTest extends TestCase
 
         $this->processor->process($event);
     }
+
+    public function testProcessCatchesAuditRepoException()
+    {
+        $event = $this->createEventMock(1000);
+        $this->auditRepo->method('hasPaymentBeenProcessed')->willThrowException(new \Exception('Audit Error'));
+        $this->customerRepo->method('findByEmail')->willReturn(null);
+        
+        // It shouldn't crash
+        $this->processor->process($event);
+        $this->assertTrue(true);
+    }
+
+    public function testProcessDoublePaymentLifetime()
+    {
+        $event = $this->createEventMock(4999);
+        $this->auditRepo->method('hasPaymentBeenProcessed')->willReturn(false);
+        
+        $customer = new Customer('Test', 'test@example.com', '123');
+        $customer->setPlan('LIFETIME');
+        $customer->markAsPaid('old_pay');
+
+        $this->customerRepo->method('findByEmail')->willReturn($customer);
+
+        // It should detect double payment and just return after save
+        $this->customerRepo->expects($this->once())->method('save');
+        $this->emailService->expects($this->never())->method('sendLicenseEmail');
+
+        $this->processor->process($event);
+    }
+
+    public function testProcessMonthlyRenewal()
+    {
+        $event = $this->createEventMock(1000, 'test@example.com', 'paid', 'sub_123');
+        $this->auditRepo->method('hasPaymentBeenProcessed')->willReturn(false);
+        
+        $customer = new Customer('Test', 'test@example.com', '123');
+        $customer->setPlan('MONTHLY');
+        $customer->setSubscriptionId('sub_123');
+        $customer->markAsPaid('old_pay');
+        $customer->setLicenseExpiresAt(new \DateTime('now'));
+
+        $this->customerRepo->method('findBySubscriptionId')->willReturn($customer);
+
+        // Should extend date
+        $this->customerRepo->expects($this->once())->method('save');
+
+        $this->processor->process($event);
+    }
+
+    public function testProcessHandlesNotifyAndPromoExceptions()
+    {
+        $event = $this->createEventMock(4999);
+        $this->auditRepo->method('hasPaymentBeenProcessed')->willReturn(false);
+        $this->customerRepo->method('findByEmail')->willReturn(null);
+        
+        $this->syncService->method('notifySale')->willThrowException(new \Exception('Sync fail'));
+        $this->promotionService->method('handlePromotionGoal')->willThrowException(new \Exception('Promo fail'));
+
+        // Should catch and not crash
+        $this->processor->process($event);
+        $this->assertTrue(true);
+    }
+
+    public function testProcessAuditDbExceptionInStripe()
+    {
+        $event = $this->createEventMock(1000);
+        $this->auditRepo->method('hasPaymentBeenProcessed')->willThrowException(new \Exception('DB Error'));
+        $this->logger->expects($this->once())->method('error')->with($this->stringContains('Error checking if payment was already processed'));
+        
+        $this->processor->process($event);
+    }
+    
+    public function testProcessOverallExceptionInStripe()
+    {
+        // To trigger overall exception, we can make customerRepo throw since it's caught at the end
+        $event = $this->createEventMock(1000);
+        $this->auditRepo->method('hasPaymentBeenProcessed')->willReturn(false);
+        $this->customerRepo->method('findByEmail')->willThrowException(new \Exception('Fatal Error in Repo'));
+        
+        $this->logger->expects($this->exactly(2))->method('error'); // DB exception logged, then overall exception logged
+        
+        $this->processor->process($event);
+    }
+
+    public function testProcessSendLicenseEmailFailsInStripe()
+    {
+        $event = $this->createEventMock(4999);
+        $this->auditRepo->method('hasPaymentBeenProcessed')->willReturn(false);
+        $this->customerRepo->method('findByEmail')->willReturn(null);
+        
+        $this->licenseService->method('generateLicense')->willReturn('NEW-LIC-123');
+        $this->emailService->method('sendLicenseEmail')->willReturn(false);
+
+        $this->customerRepo->expects($this->once())->method('save')->with($this->callback(function (Customer $c) {
+            return $c->getDeliveryFailureCount() === 1 && $c->isLicenseDelivered() === false;
+        }));
+
+        $this->processor->process($event);
+    }
 }

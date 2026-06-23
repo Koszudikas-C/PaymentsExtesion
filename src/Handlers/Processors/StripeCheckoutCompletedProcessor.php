@@ -189,7 +189,7 @@ class StripeCheckoutCompletedProcessor implements StripeWebhookProcessorInterfac
             $templateName = 'license_email_co_creator.html';
         }
 
-        $sent = $this->emailService->sendLicenseEmail($customer->getEmail(), $customer->getLicenseKey(), $this->logger, $customer->getName(), $templateName);
+        $sent = $this->emailService->sendLicenseEmail($customer->getEmail(), $customer->getLicenseKey(), $this->logger, $customer->getName(), $templateName, 'Export Chat WhatsApp');
         if ($sent) {
             $customer->markLicenseAsDelivered();
         }

@@ -298,4 +298,118 @@ class PaymentReceivedProcessorTest extends TestCase
 
         $this->processor->process($data);
     }
+
+    public function testProcessMissingPaymentData()
+    {
+        $data = [];
+        $this->logger->expects($this->once())
+            ->method('error')
+            ->with('Invalid or missing payment data in webhook payload');
+
+        $this->processor->process($data);
+    }
+
+    public function testProcessMissingCustomerId()
+    {
+        $data = ['payment' => []];
+        $this->logger->expects($this->once())
+            ->method('error')
+            ->with('Missing customer ID in payment data');
+
+        $this->processor->process($data);
+    }
+
+    public function testProcessCatchesAuditRepoExceptionAndContinues()
+    {
+        $data = ['payment' => ['id' => 'pay_audit_err', 'customer' => 'cus_123']];
+
+        $this->auditRepo->method('hasPaymentBeenProcessed')->willThrowException(new \Exception('Audit Error'));
+        
+        $this->gateway->expects($this->once())
+            ->method('getCustomerInfo')
+            ->willReturn(null);
+
+        // It should log the error and then continue to try getCustomerInfo (which returns null here to end early)
+        $this->processor->process($data);
+        $this->assertTrue(true);
+    }
+
+    public function testProcessHandlesOriginalValue()
+    {
+        $data = [
+            'payment' => [
+                'id' => 'pay_orig_val',
+                'customer' => 'cus_123',
+                'originalValue' => 29.99
+            ]
+        ];
+
+        $this->auditRepo->method('hasPaymentBeenProcessed')->willReturn(false);
+        $this->gateway->method('getCustomerInfo')->willReturn(['email' => 'a@b.c']);
+        $this->customerRepo->method('findByEmail')->willReturn(null);
+        
+        $this->customerRepo->expects($this->once())
+            ->method('save')
+            ->with($this->callback(function (Customer $c) {
+                return $c->getPlan() === 'CO-CREATOR';
+            }));
+
+        $this->processor->process($data);
+    }
+
+    public function testProcessSendLicenseEmailFails()
+    {
+        $data = ['payment' => ['id' => 'pay_123', 'customer' => 'cus_123', 'value' => 99.99]];
+        $this->auditRepo->method('hasPaymentBeenProcessed')->willReturn(false);
+        $this->gateway->method('getCustomerInfo')->willReturn(['email' => 'a@b.c']);
+        $this->licenseService->method('generateLicense')->willReturn('lic_123');
+        
+        $this->emailService->method('sendLicenseEmail')->willReturn(false); // Simulate failure
+
+        $this->customerRepo->expects($this->once())
+            ->method('save')
+            ->with($this->callback(function (Customer $c) {
+                return $c->getDeliveryFailureCount() === 1 && $c->isLicenseDelivered() === false;
+            }));
+
+        $this->processor->process($data);
+    }
+
+    public function testProcessNotifiesSyncAndPromoAndHandlesTheirExceptions()
+    {
+        $data = ['payment' => ['id' => 'pay_123', 'customer' => 'cus_123', 'value' => 99.99]];
+        $this->auditRepo->method('hasPaymentBeenProcessed')->willReturn(false);
+        $this->gateway->method('getCustomerInfo')->willReturn(['email' => 'a@b.c']);
+        
+        // Throw exceptions in sync and promo to ensure they are caught
+        $this->syncService->method('notifySale')->willThrowException(new \Exception('Sync fail'));
+        $this->promotionService->method('handlePromotionGoal')->willThrowException(new \Exception('Promo fail'));
+
+        $this->processor->process($data);
+        
+        // Process should finish without throwing
+        $this->assertTrue(true);
+    }
+
+    public function testProcessAuditDbException2()
+    {
+        $data = ['payment' => ['id' => 'pay_123', 'customer' => 'cus_123']];
+        $this->auditRepo->method('hasPaymentBeenProcessed')->willThrowException(new \Exception('DB Error'));
+        $this->logger->expects($this->once())->method('error')->with($this->stringContains('Error checking if payment was already processed'));
+        
+        $this->gateway->method('getCustomerInfo')->willReturn(null); // to exit early
+        
+        $this->processor->process($data);
+    }
+    
+    public function testProcessOverallException2()
+    {
+        $data = ['payment' => ['id' => 'pay_123', 'customer' => 'cus_123']];
+        $this->auditRepo->method('hasPaymentBeenProcessed')->willReturn(false);
+        $this->gateway->method('getCustomerInfo')->willThrowException(new \Exception('Fatal Gateway Error'));
+        
+        $this->logger->expects($this->once())->method('error')->with($this->stringContains('Failed to process payment'));
+        
+        $this->processor->process($data);
+    }
 }
