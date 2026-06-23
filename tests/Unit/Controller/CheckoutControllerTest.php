@@ -23,7 +23,8 @@ class CheckoutControllerTest extends TestCase
         });
         $this->settings = [
             'asaas' => [
-                'payment_link_id_lifetime' => 'lnk_abc123'
+                'payment_link_id_lifetime' => 'lnk_abc123',
+                'payment_link_id_monthly' => 'lnk_monthly123'
             ]
         ];
         $_ENV['ASAAS_PAYMENT_LINK'] = 'https://cobranca.asaas.com/c/';
