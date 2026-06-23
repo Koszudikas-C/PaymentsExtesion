@@ -41,7 +41,7 @@ class CheckoutController
             $params = $this->captureAndSanitizeInputs();
 
             if (!$this->validateParams($params['chrome_identity_id'], $params['email'])) {
-                $this->respondWithError(400, 'Parâmetros chrome_identity_id e email são obrigatórios e devem conter dados válidos.');
+                $this->respondWithError(400, 'Parameters chrome_identity_id and email are required and must contain valid data.');
                 return;
             }
 
@@ -58,7 +58,7 @@ class CheckoutController
                 }
             } else {
                 $startCreate = microtime(true);
-                $this->createPreRegisteredCustomer($params['name'], $params['email'], $params['phone'], $params['chrome_identity_id']);
+                $this->createPreRegisteredCustomer($params['name'] ?? '', $params['email'], $params['phone'] ?? '', $params['chrome_identity_id']);
                 $durationCreate = round((microtime(true) - $startCreate) * 1000, 2);
                 $this->logPerformance('CheckoutController', 'createPreRegisteredCustomer', $durationCreate);
             }
@@ -81,21 +81,21 @@ class CheckoutController
             }
             
             if ($countryCode === 'BR') {
-                $checkoutUrl = $this->generateCheckoutUrl($params['email'], $params['name'], $params['phone'], $planType);
-                $message = 'Redirecionando para o pagamento seguro no Asaas.';
+                $checkoutUrl = $this->generateCheckoutUrl($params['email'], $params['name'] ?? '', $params['phone'] ?? '', $planType);
+                $message = 'Redirecting to secure payment in Asaas.';
             } else {
-                $checkoutUrl = $this->generateStripeCheckoutUrl($params['email'], $params['chrome_identity_id'], $planType);
-                $message = 'Redirecionando para o pagamento seguro internacional no Stripe.';
+                $checkoutUrl = $this->generateStripeCheckoutUrl($params['email'], $params['chrome_identity_id'], $planType, $params['name'] ?? '', $params['phone'] ?? '');
+                $message = 'Redirecting to secure international payment in Stripe.';
                 
                 // Fallback de segurança: Se o Stripe não estiver configurado/vazio, usa o Asaas
                 if (!$checkoutUrl) {
-                    $checkoutUrl = $this->generateCheckoutUrl($params['email'], $params['name'], $params['phone'], $planType);
-                    $message = 'Redirecionando para o pagamento seguro no Asaas.';
+                    $checkoutUrl = $this->generateCheckoutUrl($params['email'], $params['name'] ?? '', $params['phone'] ?? '', $planType);
+                    $message = 'Redirecting to secure payment in Asaas.';
                 }
             }
 
             if (!$checkoutUrl) {
-                $this->respondWithError(500, 'Configurações de pagamento ausentes no servidor.');
+                $this->respondWithError(500, 'Payment configurations missing on server.');
                 return;
             }
 
@@ -110,7 +110,7 @@ class CheckoutController
 
         } catch (\Throwable $e) {
             $this->logException($e);
-            $this->respondWithError(500, 'Erro interno de processamento do servidor.');
+            $this->respondWithError(500, 'Internal server error: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
         }
     }
 
@@ -142,29 +142,25 @@ class CheckoutController
     private function processExistingCustomer(Customer $customer, string $chromeIdentityId, string $requestedPlan): bool
     {
         if (empty($customer->getChromeIdentityId())) {
-            $customer->setChromeIdentityId($chromeIdentityId);
-            $this->customerRepository->save($customer);
+            $existingOwner = $this->customerRepository->findByChromeIdentityId($chromeIdentityId);
+            if (!$existingOwner) {
+                $customer->setChromeIdentityId($chromeIdentityId);
+                $this->customerRepository->save($customer);
+            }
         }
 
         if ($customer->getPaymentStatus() === 'RECEIVED' && $customer->isLicenseActive()) {
             $currentPlan = $customer->getPlan() ?: 'LIFETIME';
             
-            // Se ele já é LIFETIME, ele não precisa comprar mais nada
+            // Se ele já é LIFETIME, ele não precisa comprar mais nada, tem acesso infinito.
             if ($currentPlan === 'LIFETIME') {
                 $this->respondWithActiveLicense($customer);
                 return true;
             }
             
-            // Se ele tem um plano temporário (CO-CREATOR ou MONTHLY) e quer o MESMO plano, bloqueia
-            if ($currentPlan === $requestedPlan) {
-                $this->respondWithActiveLicense($customer);
-                return true;
-            }
-            
-            // Se ele quer fazer UPGRADE para LIFETIME, NÃO bloqueamos, deixamos prosseguir!
-            if ($currentPlan !== 'LIFETIME' && $requestedPlan === 'LIFETIME') {
-                return false; 
-            }
+            // Se o plano atual é CO-CREATOR/MONTHLY, permitimos gerar um novo Checkout
+            // para que o usuário possa interagir com a data de expiração (renovar) ou fazer upgrade.
+            return false;
         }
 
         return false;
@@ -176,14 +172,20 @@ class CheckoutController
             'status' => 'active',
             'plan' => $customer->getPlan(),
             'expiresAt' => $customer->getLicenseExpiresAt() ? $customer->getLicenseExpiresAt()->format('Y-m-d H:i:s') : null,
-            'message' => 'Você já possui uma licença ativa com este e-mail! Verifique sua caixa de entrada para ver a chave de licença.'
+            'message' => 'You already have an active license with this email! Check your inbox to see the license key.'
         ]);
     }
 
     private function createPreRegisteredCustomer(string $name, string $email, string $phone, string $chromeIdentityId): Customer
     {
         $customer = new Customer($name, $email, $phone);
-        $customer->setChromeIdentityId($chromeIdentityId);
+        
+        // Verifica se o chromeIdentityId já pertence a outro usuário antes de associar ao novo
+        $existingOwner = $this->customerRepository->findByChromeIdentityId($chromeIdentityId);
+        if (!$existingOwner) {
+            $customer->setChromeIdentityId($chromeIdentityId);
+        }
+        
         $this->customerRepository->save($customer);
         return $customer;
     }
@@ -227,26 +229,77 @@ class CheckoutController
         return $baseUrl . '?' . $queryParams;
     }
 
-    private function generateStripeCheckoutUrl(string $email, string $chromeIdentityId, string $planType): ?string
+    private function generateStripeCheckoutUrl(string $email, string $chromeIdentityId, string $planType, string $name, string $phone): ?string
     {
         // Pega as variáveis específicas de plano, se existirem
-        $linkId = $planType === 'MONTHLY' || $planType === 'CO-CREATOR'
-            ? ($_ENV['STRIPE_PAYMENT_LINK_ID_MONTHLY'] ?? null)
-            : ($_ENV['STRIPE_PAYMENT_LINK_ID_LIFETIME'] ?? null);
-
-        if (empty($linkId)) {
-            $linkId = $_ENV['STRIPE_PAYMENT_LINK_ID'] ?? null;
+        $priceId = null;
+        if ($planType === 'MONTHLY' || $planType === 'CO-CREATOR') {
+            $priceId = $_ENV['STRIPE_PRICE_ID_MONTHLY'] ?? $_ENV['STRIPE_PAYMENT_LINK_ID_MONTHLY'] ?? null;
+        } else {
+            $priceId = $_ENV['STRIPE_PRICE_ID_LIFETIME'] ?? $_ENV['STRIPE_PAYMENT_LINK_ID_LIFETIME'] ?? null;
         }
 
-        if ($linkId && str_contains($linkId, ',')) {
-            $links = explode(',', $linkId);
-            $linkId = $planType === 'MONTHLY' || $planType === 'CO-CREATOR' ? trim($links[1] ?? $links[0]) : trim($links[0]);
+        if (empty($priceId)) {
+            $priceId = $_ENV['STRIPE_PRICE_ID'] ?? $_ENV['STRIPE_PAYMENT_LINK_ID'] ?? null;
         }
 
-        if (empty($linkId)) {
-            $this->logger->critical("Stripe Payment Link ID for plan {$planType} is missing in config.");
+        if ($priceId && str_contains($priceId, ',')) {
+            $links = explode(',', $priceId);
+            $priceId = $planType === 'MONTHLY' || $planType === 'CO-CREATOR' ? trim($links[1] ?? $links[0]) : trim($links[0]);
+        }
+
+        if (empty($priceId)) {
+            $this->logger->critical("Stripe Payment Link / Price ID for plan {$planType} is missing in config.");
             return null;
         }
+
+        // Se o admin configurou um ID de Preço nativo (começa com price_), gera a Sessão Dinâmica c/ Nome!
+        if (str_starts_with($priceId, 'price_')) {
+            if (empty($_ENV['STRIPE_SECRET_KEY'])) {
+                $this->logger->critical("Stripe Secret Key is missing for Session API.");
+                return null;
+            }
+
+            try {
+                \Stripe\Stripe::setApiKey($_ENV['STRIPE_SECRET_KEY']);
+                
+                // Buscar cliente na Stripe ou criar um novo cravando o NOME
+                $customers = \Stripe\Customer::all(['email' => $email, 'limit' => 1]);
+                if (count($customers->data) > 0) {
+                    $stripeCustomer = $customers->data[0];
+                } else {
+                    $stripeCustomer = \Stripe\Customer::create([
+                        'email' => $email,
+                        'name' => $name,
+                        'phone' => $phone,
+                    ]);
+                }
+                
+                $successUrl = $_ENV['STRIPE_SUCCESS_URL'] ?? 'https://aifreelas.com.br?payment=success';
+                $cancelUrl = $_ENV['STRIPE_CANCEL_URL'] ?? 'https://aifreelas.com.br?payment=cancelled';
+
+                $session = \Stripe\Checkout\Session::create([
+                    'customer' => $stripeCustomer->id,
+                    'payment_method_types' => ['card'],
+                    'line_items' => [[
+                        'price' => $priceId,
+                        'quantity' => 1,
+                    ]],
+                    'mode' => ($planType === 'MONTHLY' || $planType === 'CO-CREATOR') ? 'subscription' : 'payment',
+                    'client_reference_id' => $chromeIdentityId,
+                    'success_url' => $successUrl,
+                    'cancel_url' => $cancelUrl,
+                ]);
+
+                return $session->url;
+            } catch (\Exception $e) {
+                $this->logger->error("Failed to create Stripe Checkout Session: " . $e->getMessage());
+                return null;
+            }
+        }
+
+        // --- FALLBACK PARA PAYMENT LINKS ANTIGOS (Não suporta preenchimento de nome) ---
+        $linkId = $priceId;
 
         // Se o usuário colou a URL inteira no .env, não concatena de novo
         if (str_starts_with($linkId, 'http://') || str_starts_with($linkId, 'https://')) {
@@ -323,7 +376,7 @@ class CheckoutController
 
         $rawChromeId = $_REQUEST['chrome_identity_id'] ?? $input['chrome_identity_id'] ?? null;
         $rawEmail = $_REQUEST['email'] ?? $input['email'] ?? null;
-        $rawName = $_REQUEST['name'] ?? $input['name'] ?? 'Usuário';
+        $rawName = $_REQUEST['name'] ?? $input['name'] ?? 'User';
         $rawPhone = $_REQUEST['phone'] ?? $input['phone'] ?? 'unknown';
         $rawPlan = $_REQUEST['plan'] ?? $input['plan'] ?? 'LIFETIME';
 
@@ -361,12 +414,12 @@ class CheckoutController
     private function sanitizeName(?string $rawName): string
     {
         if ($rawName === null) {
-            return 'Usuário';
+            return 'User';
         }
         $cleanName = strip_tags($rawName);
         $cleanName = htmlspecialchars($cleanName, ENT_QUOTES | ENT_HTML5, 'UTF-8');
         $cleanName = trim($cleanName);
-        return !empty($cleanName) ? substr($cleanName, 0, 100) : 'Usuário';
+        return !empty($cleanName) ? substr($cleanName, 0, 100) : 'User';
     }
 
     private function sanitizePhone(?string $rawPhone): string

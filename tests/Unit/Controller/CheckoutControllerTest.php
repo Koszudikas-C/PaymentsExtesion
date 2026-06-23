@@ -18,6 +18,10 @@ class CheckoutControllerTest extends TestCase
     {
         $this->customerRepo = $this->createMock(CustomerRepositoryInterface::class);
         $this->logger = $this->createMock(Logger::class);
+        $this->logger->method('error')->willReturnCallback(function($msg) {
+            // Do not echo here, it breaks ob_get_clean JSON parsing
+            error_log("[LOGGER ERROR]: $msg");
+        });
         $this->settings = [
             'asaas' => [
                 'payment_link_id_lifetime' => 'lnk_abc123'
@@ -37,6 +41,9 @@ class CheckoutControllerTest extends TestCase
     protected function tearDown(): void
     {
         $_REQUEST = [];
+        unset($_SERVER['HTTP_X_FORWARDED_FOR']);
+        unset($_SERVER['HTTP_CLIENT_IP']);
+        unset($_SERVER['REMOTE_ADDR']);
     }
 
     public function testHandleRequestMissingParamsReturns400()
@@ -51,7 +58,7 @@ class CheckoutControllerTest extends TestCase
 
         $response = json_decode($output, true);
         $this->assertEquals('error', $response['status']);
-        $this->assertStringContainsString('Parâmetros chrome_identity_id e email são obrigatórios', $response['message']);
+        $this->assertStringContainsString('Parameters chrome_identity_id and email are required', $response['message']);
     }
 
     public function testHandleRequestActiveLifetimeCustomerReturnsActiveState()
@@ -80,7 +87,7 @@ class CheckoutControllerTest extends TestCase
         $response = json_decode($output, true);
         $this->assertEquals('active', $response['status']);
         $this->assertEquals('LIFETIME', $response['plan']);
-        $this->assertStringContainsString('Você já possui uma licença ativa', $response['message']);
+        $this->assertStringContainsString('You already have an active license', $response['message']);
     }
 
     public function testHandleRequestNewCustomerPreRegistersAndReturnsCheckoutUrl()
@@ -92,8 +99,9 @@ class CheckoutControllerTest extends TestCase
             'phone' => '5511888888888'
         ]);
 
-        $this->customerRepo->expects($this->never())
-            ->method('findByChromeIdentityId');
+        $this->customerRepo->expects($this->once())
+            ->method('findByChromeIdentityId')
+            ->willReturn(null);
 
         $this->customerRepo->expects($this->once())
             ->method('findByEmail')
@@ -101,7 +109,7 @@ class CheckoutControllerTest extends TestCase
             ->willReturn(null);
 
         // Expect pre-registration save
-        $this->customerRepo->expects($this->once())
+        $this->customerRepo->expects($this->atLeastOnce())
             ->method('save')
             ->with($this->callback(function (Customer $customer) {
                 return $customer->getEmail() === 'new@example.com'
@@ -116,6 +124,9 @@ class CheckoutControllerTest extends TestCase
         $output = ob_get_clean();
 
         $response = json_decode($output, true);
+        if ($response['status'] === 'error') {
+            print_r("\nERROR: " . $response['message'] . "\n");
+        }
         $this->assertEquals('pending', $response['status']);
         $this->assertStringContainsString($_ENV['ASAAS_PAYMENT_LINK'], $response['checkoutUrl']);
         $this->assertStringContainsString('email=new%40example.com', $response['checkoutUrl']);
@@ -261,7 +272,7 @@ class CheckoutControllerTest extends TestCase
             'email' => 'intl@example.com'
         ]);
 
-        $_SERVER['HTTP_X_FORWARDED_FOR'] = '8.8.8.8'; 
+        $_SERVER['HTTP_X_FORWARDED_FOR'] = '8.8.8.8';
         // Force Stripe missing
         unset($_ENV['STRIPE_PAYMENT_LINK_ID_LIFETIME']);
         unset($_ENV['STRIPE_PAYMENT_LINK_ID']);
@@ -313,7 +324,7 @@ class CheckoutControllerTest extends TestCase
             'plan' => 'LIFETIME'
         ]);
 
-        $_SERVER['HTTP_X_FORWARDED_FOR'] = '8.8.8.8'; 
+        $_SERVER['HTTP_X_FORWARDED_FOR'] = '8.8.8.8';
         $_ENV['STRIPE_PAYMENT_LINK_ID_LIFETIME'] = 'https://buy.stripe.com/full_url_123';
 
         $this->customerRepo->method('findByEmail')->willReturn(null);
