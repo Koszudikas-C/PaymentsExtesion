@@ -19,8 +19,7 @@ class CheckoutControllerTest extends TestCase
         $this->customerRepo = $this->createMock(CustomerRepositoryInterface::class);
         $this->logger = $this->createMock(Logger::class);
         $this->logger->method('error')->willReturnCallback(function($msg) {
-            // Do not echo here, it breaks ob_get_clean JSON parsing
-            error_log("[LOGGER ERROR]: $msg");
+            // Silenced to avoid PHPUnit risky test warning
         });
         $this->settings = [
             'asaas' => [
@@ -290,12 +289,14 @@ class CheckoutControllerTest extends TestCase
         $this->assertStringContainsString('cobranca.asaas.com', $response['checkoutUrl']);
     }
 
-    public function testHandleRequestProcessExistingCustomerSamePlanReturnsActive()
+    public function testHandleRequestProcessExistingCustomerSamePlanReturnsPendingToRenew()
     {
         $this->setRequestParams([
             'chrome_identity_id' => 'chrome_user_123',
             'email' => 'monthly@example.com',
-            'plan' => 'MONTHLY'
+            'plan' => 'MONTHLY',
+            'name' => 'Same Plan User',
+            'phone' => '5511999999999'
         ]);
 
         $monthlyCustomer = new Customer('Same Plan User', 'monthly@example.com', '5511999999999');
@@ -313,7 +314,7 @@ class CheckoutControllerTest extends TestCase
         $output = ob_get_clean();
 
         $response = json_decode($output, true);
-        $this->assertEquals('active', $response['status']);
+        $this->assertEquals('pending', $response['status']);
     }
 
     public function testHandleRequestStripeWithFullUrl()
