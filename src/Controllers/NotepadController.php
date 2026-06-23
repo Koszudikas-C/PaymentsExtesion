@@ -56,7 +56,7 @@ class NotepadController
             }
 
             $customer = $customerResult;
-            
+
             if ($customer->getPlan() !== 'CO-CREATOR') {
                 $this->respondWithError(403, 'Note synchronization is exclusive to the CO-CREATOR plan.');
                 return;
@@ -73,7 +73,7 @@ class NotepadController
             if ($method === 'GET') {
                 $requestedJids = null;
                 if (!empty($params['jids'])) {
-                    $requestedJids = is_string($params['jids']) ? explode(',', $params['jids']) : (array)$params['jids'];
+                    $requestedJids = is_string($params['jids']) ? explode(',', $params['jids']) : (array) $params['jids'];
                 }
                 $this->handleGet($customer, $ownerJid, $jid, !empty($params['metadata_only']), $requestedJids, $params['global_hash'] ?? null);
             } elseif ($method === 'POST') {
@@ -99,27 +99,27 @@ class NotepadController
     {
         if (empty($jid)) {
             $notepadRepository = $this->entityManager->getRepository(Notepad::class);
-            
+
             $criteria = ['customer' => $customer, 'ownerJid' => $ownerJid];
             if (!empty($requestedJids)) {
                 $criteria['jid'] = $requestedJids;
             }
-            
+
             $notepads = $notepadRepository->findBy($criteria);
-            
+
             $results = [];
             foreach ($notepads as $n) {
                 $noteContent = $n->getNote();
                 $results[$n->getJid()] = [
                     'note' => $noteContent,
-                    'hash' => hash('sha256', (string)$noteContent),
+                    'hash' => hash('sha256', (string) $noteContent),
                     'updated_at' => $n->getDateUpdated() ? ($n->getDateUpdated()->getTimestamp() * 1000) : null
                 ];
             }
-            
+
             if (function_exists('apcu_fetch') && ini_get('apc.enabled')) {
                 $prefix = 'notepad_latest_' . $customer->getId() . '_' . $ownerJid . '_';
-                
+
                 if (!empty($requestedJids)) {
                     // O(1) fetch para JIDs específicos
                     foreach ($requestedJids as $reqJid) {
@@ -131,14 +131,13 @@ class NotepadController
                             if ($cachedTs >= $existingTs) {
                                 $results[$reqJid] = [
                                     'note' => $data['note'],
-                                    'hash' => hash('sha256', (string)$data['note']),
+                                    'hash' => hash('sha256', (string) $data['note']),
                                     'updated_at' => $cachedTs
                                 ];
                             }
                         }
                     }
                 } elseif (function_exists('apcu_cache_info')) {
-                    // O(N) sweep fallback
                     $info = apcu_cache_info();
                     if (isset($info['cache_list'])) {
                         foreach ($info['cache_list'] as $entry) {
@@ -152,7 +151,7 @@ class NotepadController
                                     if ($cachedTs >= $existingTs) {
                                         $results[$cachedJid] = [
                                             'note' => $data['note'],
-                                            'hash' => hash('sha256', (string)$data['note']),
+                                            'hash' => hash('sha256', (string) $data['note']),
                                             'updated_at' => $cachedTs
                                         ];
                                     }
@@ -162,7 +161,7 @@ class NotepadController
                     }
                 }
             }
-            
+
             $hashesToHash = [];
             foreach ($results as $j => $r) {
                 if (empty($requestedJids)) {
@@ -172,12 +171,12 @@ class NotepadController
                     unset($results[$j]['note']);
                 }
             }
-            
+
             $globalHash = null;
             if (empty($requestedJids)) {
                 ksort($hashesToHash);
                 $globalHash = hash('sha256', implode('', $hashesToHash));
-                
+
                 if ($clientGlobalHash === $globalHash) {
                     $this->respondWithJson(200, [
                         'status' => 'success',
@@ -188,7 +187,7 @@ class NotepadController
                     return;
                 }
             }
-            
+
             $this->respondWithJson(200, [
                 'status' => 'success',
                 'global_hash' => $globalHash,
@@ -201,12 +200,12 @@ class NotepadController
         if (function_exists('apcu_fetch') && ini_get('apc.enabled')) {
             $fastKey = 'notepad_latest_' . $customer->getId() . '_' . $ownerJid . '_' . $jid;
             $data = apcu_fetch($fastKey);
-            
+
             if ($data !== false && is_array($data)) {
                 $this->respondWithJson(200, [
                     'status' => 'success',
                     'note' => $metadataOnly ? null : ($data['note'] ?? null),
-                    'hash' => hash('sha256', (string)($data['note'] ?? '')),
+                    'hash' => hash('sha256', (string) ($data['note'] ?? '')),
                     'updated_at' => $data['updated_at'] ?? null
                 ]);
                 return;
@@ -215,7 +214,7 @@ class NotepadController
                 $this->respondWithJson(200, [
                     'status' => 'success',
                     'note' => $metadataOnly ? null : $data,
-                    'hash' => hash('sha256', (string)$data),
+                    'hash' => hash('sha256', (string) $data),
                     'updated_at' => null
                 ]);
                 return;
@@ -230,7 +229,7 @@ class NotepadController
         $this->respondWithJson(200, [
             'status' => 'success',
             'note' => $metadataOnly ? null : $noteContent,
-            'hash' => hash('sha256', (string)$noteContent),
+            'hash' => hash('sha256', (string) $noteContent),
             'updated_at' => $notepad ? ($notepad->getDateUpdated()->getTimestamp() * 1000) : null
         ]);
     }
@@ -243,7 +242,7 @@ class NotepadController
         $this->respondWithJson(200, [
             'status' => 'success',
             'message' => 'Note saved in the synchronization queue.',
-            'hash' => hash('sha256', (string)$note)
+            'hash' => hash('sha256', (string) $note)
         ]);
     }
 
@@ -279,7 +278,7 @@ class NotepadController
             'jids' => is_string($jids) ? $jids : (is_array($jids) ? implode(',', $jids) : null),
             'global_hash' => is_string($globalHash) ? trim($globalHash) : null,
             'note' => is_string($note) ? $note : (is_array($note) ? json_encode($note) : null),
-            'updated_at' => $updatedAt ? (int)$updatedAt : null,
+            'updated_at' => $updatedAt ? (int) $updatedAt : null,
             'metadata_only' => filter_var($metadataOnly, FILTER_VALIDATE_BOOLEAN)
         ];
     }

@@ -49,7 +49,7 @@ class StripeCheckoutCompletedProcessor implements StripeWebhookProcessorInterfac
     {
         /** @var Session $session */
         $session = $event->data->object;
-        
+
         // Apenas processa se estiver pago
         if ($session->payment_status !== 'paid') {
             $this->logger->info('Stripe checkout session not paid, ignoring.', ['session_id' => $session->id]);
@@ -61,7 +61,7 @@ class StripeCheckoutCompletedProcessor implements StripeWebhookProcessorInterfac
         $name = $session->customer_details->name ?? 'Usuário Internacional';
         $whatsapp = $session->customer_details->phone ?? 'unknown';
         $chromeIdentityId = $session->client_reference_id ?? null;
-        $value = $session->amount_total / 100; // Stripe passa valor em centavos
+        $value = $session->amount_total / 100;
         $subscriptionId = $session->subscription ?? null;
 
         if (empty($email)) {
@@ -74,7 +74,8 @@ class StripeCheckoutCompletedProcessor implements StripeWebhookProcessorInterfac
                 $this->logger->info('Stripe payment already processed.', ['payment_id' => $paymentId]);
                 return;
             }
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+        }
 
         $targetPlan = $this->resolveTargetPlan($value, $subscriptionId);
         $isUpgrade = false;
@@ -160,13 +161,14 @@ class StripeCheckoutCompletedProcessor implements StripeWebhookProcessorInterfac
                 $lifetimeCount = $this->customerRepository->countPaidLifetimeCustomers();
                 $this->syncService->notifySale($customer, $this->logger, $lifetimeCount);
                 $this->promotionService->handlePromotionGoal($customer, $this->logger);
-            } catch (\Throwable $e) {}
+            } catch (\Throwable $e) {
+            }
         }
     }
 
     private function resolveTargetPlan(float $value, ?string $subscriptionId): string
     {
-        $coCreatorPrice = (float)($_ENV['MONTHLY_VALUE_USD'] ?? 5.99); // Valor em dólar para Co-Creator
+        $coCreatorPrice = (float) ($_ENV['MONTHLY_VALUE_USD'] ?? 5.99); // Valor em dólar para Co-Creator
         if (abs($value - $coCreatorPrice) < 0.01) {
             return 'CO-CREATOR';
         }

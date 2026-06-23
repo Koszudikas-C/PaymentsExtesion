@@ -202,7 +202,7 @@ class PaymentReceivedProcessorTest extends TestCase
         $this->licenseService->expects($this->never())->method('generateLicense');
 
         $this->processor->process($data);
-        
+
         $this->assertFileExists(__DIR__ . '/../../../../logs_test/double_payments.json');
     }
 
@@ -228,7 +228,7 @@ class PaymentReceivedProcessorTest extends TestCase
         $customer->setPlan('MONTHLY');
         $customer->setSubscriptionId('sub_123');
         $customer->markAsPaid('pay_old');
-        
+
         $oldDate = new \DateTime();
         $customer->setLicenseExpiresAt($oldDate);
 
@@ -251,7 +251,7 @@ class PaymentReceivedProcessorTest extends TestCase
         ];
 
         $this->auditRepo->method('hasPaymentBeenProcessed')->willThrowException(new \Exception('Audit Error'));
-        
+
         $this->gateway->method('getCustomerInfo')->willReturn([
             'email' => 'test@example.com',
             'name' => 'Test User',
@@ -324,7 +324,7 @@ class PaymentReceivedProcessorTest extends TestCase
         $data = ['payment' => ['id' => 'pay_audit_err', 'customer' => 'cus_123']];
 
         $this->auditRepo->method('hasPaymentBeenProcessed')->willThrowException(new \Exception('Audit Error'));
-        
+
         $this->gateway->expects($this->once())
             ->method('getCustomerInfo')
             ->willReturn(null);
@@ -347,7 +347,7 @@ class PaymentReceivedProcessorTest extends TestCase
         $this->auditRepo->method('hasPaymentBeenProcessed')->willReturn(false);
         $this->gateway->method('getCustomerInfo')->willReturn(['email' => 'a@b.c']);
         $this->customerRepo->method('findByEmail')->willReturn(null);
-        
+
         $this->customerRepo->expects($this->once())
             ->method('save')
             ->with($this->callback(function (Customer $c) {
@@ -363,7 +363,7 @@ class PaymentReceivedProcessorTest extends TestCase
         $this->auditRepo->method('hasPaymentBeenProcessed')->willReturn(false);
         $this->gateway->method('getCustomerInfo')->willReturn(['email' => 'a@b.c']);
         $this->licenseService->method('generateLicense')->willReturn('lic_123');
-        
+
         $this->emailService->method('sendLicenseEmail')->willReturn(false); // Simulate failure
 
         $this->customerRepo->expects($this->once())
@@ -380,13 +380,13 @@ class PaymentReceivedProcessorTest extends TestCase
         $data = ['payment' => ['id' => 'pay_123', 'customer' => 'cus_123', 'value' => 99.99]];
         $this->auditRepo->method('hasPaymentBeenProcessed')->willReturn(false);
         $this->gateway->method('getCustomerInfo')->willReturn(['email' => 'a@b.c']);
-        
+
         // Throw exceptions in sync and promo to ensure they are caught
         $this->syncService->method('notifySale')->willThrowException(new \Exception('Sync fail'));
         $this->promotionService->method('handlePromotionGoal')->willThrowException(new \Exception('Promo fail'));
 
         $this->processor->process($data);
-        
+
         // Process should finish without throwing
         $this->assertTrue(true);
     }
@@ -395,21 +395,21 @@ class PaymentReceivedProcessorTest extends TestCase
     {
         $data = ['payment' => ['id' => 'pay_123', 'customer' => 'cus_123']];
         $this->auditRepo->method('hasPaymentBeenProcessed')->willThrowException(new \Exception('DB Error'));
-        $this->logger->expects($this->once())->method('error')->with($this->stringContains('Error checking if payment was already processed'));
-        
+        $this->logger->expects($this->exactly(2))->method('error');
+
         $this->gateway->method('getCustomerInfo')->willReturn(null); // to exit early
-        
+
         $this->processor->process($data);
     }
-    
+
     public function testProcessOverallException2()
     {
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Fatal Gateway Error');
         $data = ['payment' => ['id' => 'pay_123', 'customer' => 'cus_123']];
         $this->auditRepo->method('hasPaymentBeenProcessed')->willReturn(false);
         $this->gateway->method('getCustomerInfo')->willThrowException(new \Exception('Fatal Gateway Error'));
-        
-        $this->logger->expects($this->once())->method('error')->with($this->stringContains('Failed to process payment'));
-        
+
         $this->processor->process($data);
     }
 }

@@ -14,5 +14,12 @@ interface NotepadQueueServiceInterface
      * @param int|null $updatedAt
      * @param int $retryCount
      */
-    public function enqueue(string $customerId, string $ownerJid, string $jid, ?string $note, ?int $updatedAt = null, int $retryCount = 0): void;
+    public function enqueue(
+        string $customerId,
+        string $ownerJid,
+        string $jid,
+        ?string $note,
+        ?int $updatedAt = null,
+        int $retryCount = 0
+    ): void;
 }

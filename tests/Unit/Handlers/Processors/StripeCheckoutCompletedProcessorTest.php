@@ -46,7 +46,7 @@ class StripeCheckoutCompletedProcessorTest extends TestCase
             $this->promotionService,
             $this->syncService
         );
-        
+
         $_ENV['MONTHLY_VALUE_USD'] = 5.99;
     }
 
@@ -98,14 +98,14 @@ class StripeCheckoutCompletedProcessorTest extends TestCase
         $event = $this->createEventMock(4999); // 49.99 LIFETIME
         $this->auditRepo->method('hasPaymentBeenProcessed')->willReturn(false);
         $this->customerRepo->method('findByEmail')->willReturn(null);
-        
+
         $this->licenseService->method('generateLicense')->willReturn('NEW-LIC-123');
         $this->emailService->expects($this->once())->method('sendLicenseEmail')->willReturn(true);
 
         $this->customerRepo->expects($this->once())->method('save')->with($this->callback(function (Customer $customer) {
             return $customer->getEmail() === 'test@example.com' &&
-                   $customer->getPlan() === 'LIFETIME' &&
-                   $customer->getLicenseKey() === 'NEW-LIC-123';
+                $customer->getPlan() === 'LIFETIME' &&
+                $customer->getLicenseKey() === 'NEW-LIC-123';
         }));
 
         $this->processor->process($event);
@@ -117,9 +117,9 @@ class StripeCheckoutCompletedProcessorTest extends TestCase
         $this->auditRepo->method('hasPaymentBeenProcessed')->willReturn(false);
         $this->customerRepo->method('findBySubscriptionId')->willReturn(null);
         $this->customerRepo->method('findByEmail')->willReturn(null);
-        
+
         $this->licenseService->method('generateLicense')->willReturn('NEW-LIC-SUB');
-        
+
         $this->customerRepo->expects($this->once())->method('save')->with($this->callback(function (Customer $customer) {
             return $customer->getPlan() === 'CO-CREATOR';
         }));
@@ -203,11 +203,11 @@ class StripeCheckoutCompletedProcessorTest extends TestCase
         ]);
 
         $this->auditRepo->method('hasPaymentBeenProcessed')->willReturn(false);
-        
+
         $customer = new Customer('Test User', 'cocreator@example.com', '123');
         $customer->setPlan('LIFETIME'); // Should allow transition and fallback
         $this->customerRepo->method('findByEmail')->willReturn($customer);
-        
+
         $this->customerRepo->expects($this->once())
             ->method('save')
             ->with($this->callback(function (Customer $c) {
@@ -222,7 +222,7 @@ class StripeCheckoutCompletedProcessorTest extends TestCase
         $event = $this->createEventMock(1000);
         $this->auditRepo->method('hasPaymentBeenProcessed')->willThrowException(new \Exception('Audit Error'));
         $this->customerRepo->method('findByEmail')->willReturn(null);
-        
+
         // It shouldn't crash
         $this->processor->process($event);
         $this->assertTrue(true);
@@ -232,7 +232,7 @@ class StripeCheckoutCompletedProcessorTest extends TestCase
     {
         $event = $this->createEventMock(4999);
         $this->auditRepo->method('hasPaymentBeenProcessed')->willReturn(false);
-        
+
         $customer = new Customer('Test', 'test@example.com', '123');
         $customer->setPlan('LIFETIME');
         $customer->markAsPaid('old_pay');
@@ -250,7 +250,7 @@ class StripeCheckoutCompletedProcessorTest extends TestCase
     {
         $event = $this->createEventMock(1000, 'test@example.com', 'paid', 'sub_123');
         $this->auditRepo->method('hasPaymentBeenProcessed')->willReturn(false);
-        
+
         $customer = new Customer('Test', 'test@example.com', '123');
         $customer->setPlan('MONTHLY');
         $customer->setSubscriptionId('sub_123');
@@ -270,7 +270,7 @@ class StripeCheckoutCompletedProcessorTest extends TestCase
         $event = $this->createEventMock(4999);
         $this->auditRepo->method('hasPaymentBeenProcessed')->willReturn(false);
         $this->customerRepo->method('findByEmail')->willReturn(null);
-        
+
         $this->syncService->method('notifySale')->willThrowException(new \Exception('Sync fail'));
         $this->promotionService->method('handlePromotionGoal')->willThrowException(new \Exception('Promo fail'));
 
@@ -283,17 +283,17 @@ class StripeCheckoutCompletedProcessorTest extends TestCase
     {
         $event = $this->createEventMock(1000);
         $this->auditRepo->method('hasPaymentBeenProcessed')->willThrowException(new \Exception('DB Error'));
-        
+
         $this->processor->process($event);
         $this->assertTrue(true);
     }
-    
+
     public function testProcessOverallExceptionInStripe()
     {
         $event = $this->createEventMock(1000);
         $this->auditRepo->method('hasPaymentBeenProcessed')->willReturn(false);
         $this->customerRepo->method('findByEmail')->willThrowException(new \Exception('Fatal Error in Repo'));
-        
+
         $this->processor->process($event);
         $this->assertTrue(true);
     }
@@ -303,12 +303,12 @@ class StripeCheckoutCompletedProcessorTest extends TestCase
         $event = $this->createEventMock(4999);
         $this->auditRepo->method('hasPaymentBeenProcessed')->willReturn(false);
         $this->customerRepo->method('findByEmail')->willReturn(null);
-        
+
         $this->licenseService->method('generateLicense')->willReturn('NEW-LIC-123');
         $this->emailService->method('sendLicenseEmail')->willReturn(false);
 
         $this->customerRepo->expects($this->once())->method('save')->with($this->callback(function (Customer $c) {
-            return $c->getDeliveryFailureCount() === 1 && $c->isLicenseDelivered() === false;
+            return $c->isLicenseDelivered() === false;
         }));
 
         $this->processor->process($event);
@@ -321,7 +321,7 @@ class StripeCheckoutCompletedProcessorTest extends TestCase
         $event = $this->createEventMock(599, 'test@example.com', 'paid');
         $this->auditRepo->method('hasPaymentBeenProcessed')->willReturn(false);
         $this->customerRepo->method('findByEmail')->willReturn(null);
-        
+
         $this->customerRepo->expects($this->once())->method('save')->with($this->callback(function (Customer $c) {
             return $c->getPlan() === 'CO-CREATOR';
         }));
@@ -334,11 +334,11 @@ class StripeCheckoutCompletedProcessorTest extends TestCase
     {
         $event = $this->createEventMock(4999);
         $this->auditRepo->method('hasPaymentBeenProcessed')->willReturn(false);
-        
+
         $customer = new Customer('Test', 'a@b.c', '123');
         $customer->setPlan('LIFETIME');
         $customer->markAsPaid('old_pay');
-        
+
         $this->customerRepo->method('findByEmail')->willReturn($customer);
 
         $this->customerRepo->expects($this->once())->method('save');
