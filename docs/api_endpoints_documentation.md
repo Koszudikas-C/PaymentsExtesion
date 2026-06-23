@@ -11,6 +11,7 @@ Esta documentação detalha todos os endpoints disponíveis na API do sistema de
 4. [Endpoint de Estatísticas de Campanha (`/campaign-stats`)](#4-endpoint-de-estatísticas-de-campanha-campaign-stats)
 5. [Endpoint de Health Check (`/health`)](#5-endpoint-de-health-check-health)
 6. [Endpoint de Webhook do Asaas (`/webhook`)](#6-endpoint-de-webhook-do-asaas-webhook)
+7. [Endpoint do Bloco de Notas (`/notes`)](#7-endpoint-do-bloco-de-notas-notes)
 
 ---
 
@@ -377,5 +378,125 @@ Ocorre em falhas críticas internas de banco ou processamento de lógica durante
 {
   "status": "error",
   "message": "Internal Server Error"
+}
+```
+
+---
+
+## 7. Endpoint do Bloco de Notas (`/notes`)
+
+* **Finalidade**: Salvar e recuperar o bloco de notas de um cliente. Suporta múltiplas notas separadas por chat/contato do WhatsApp (`jid`). A gravação é **assíncrona** usando uma fila inteligente (Load Shedding). A leitura prioriza memória RAM (APCu) para acesso ultrarrápido antes de consultar o banco.
+* **Rotas**: `/notes`
+* **Métodos**: `GET`, `POST`
+* **Headers Requeridos**: `Content-Type: application/json`
+
+### Parâmetros de Entrada (Payload JSON ou Query Params)
+
+| Campo | Tipo | Obrigatoriedade | Descrição |
+| :--- | :--- | :--- | :--- |
+| `chrome_identity_id` | String | **Obrigatório** | ID único de identidade do Chrome do usuário. Usado como chave principal para buscar a licença. |
+| `jid` | String | **Obrigatório** | O ID do Chat do WhatsApp (ex: `5511999999999@s.whatsapp.net`). As notas são armazenadas individualmente para cada `jid`. |
+| `email` | String | Opcional | Email do usuário. Usado como fallback de busca caso a identidade do Chrome não exista. |
+| `note` | String / nulo | Obrigatório no POST | O texto do bloco de notas do usuário para aquele chat. |
+
+---
+
+### Respostas do Método GET
+
+Ao fazer um `GET /notes`, a API retorna a última nota gravada daquele `jid` para o usuário.
+
+#### A. 200 OK - Nota Encontrada
+```json
+{
+  "status": "success",
+  "note": "Exemplo de anotação salva para este chat."
+}
+```
+*(Nota: Se o usuário nunca tiver anotado nada no chat, `note` retornará `null`).*
+
+---
+
+### Respostas do Método POST
+
+Ao fazer um `POST /notes`, a nota não vai direto para o Banco de Dados. Ela entra numa fila de alto desempenho e é respondida imediatamente.
+
+#### A. 200 OK - Sucesso na Fila
+Ocorre quando a anotação foi aceita e enfileirada.
+```json
+{
+  "status": "success",
+  "message": "Anotação salva na fila de sincronização."
+}
+```
+
+#### B. 400 Bad Request - Parâmetros Ausentes
+```json
+{
+  "status": "error",
+  "message": "Parâmetro chrome_identity_id é obrigatório."
+}
+```
+
+#### C. 200 OK - Falhas de Negócio (Inativo, Conflito)
+Como a extensão do Chrome processa tudo em background silenciosamente, erros de assinatura retornam `200 OK` no HTTP, mas o campo `status` JSON acusa o erro:
+- `"status": "inactive"`: Licença inativa.
+- `"status": "conflict"`: Licença logada em outro perfil Chrome.
+- `"status": "forbidden"`: Plano incompatível.
+
+### Detalhes de Arquitetura (Integração IA)
+- **Fast Retrieval**: O endpoint `GET` primeiro checa a RAM (`APCu`). Se a nota tiver acabado de ser salva via `POST`, ela estará lá fresquinha. Só em último caso ele sobrecarrega o BD.
+- **Fire-and-Forget**: O endpoint `POST` delega a escrita para o disco/banco em background. O script `app:sync-notepad-queue` junta todas as edições de um mesmo `jid` em lotes e salva só o texto final para poupar I/O.
+- Sempre implemente *debounce* de 2 segundos antes de disparar o `POST` na extensão.
+
+---
+
+## 8. Endpoint de Desativação de Licença (`/deactivate`)
+
+* **Finalidade**: Desvincula a licença do perfil atual (`chrome_identity_id`), permitindo que ela seja ativada em outro computador ou perfil sem gerar conflito.
+* **Rotas**: `/deactivate`
+* **Métodos**: `POST`
+* **Headers Requeridos**: `Content-Type: application/json`
+
+### Parâmetros de Entrada (Payload JSON)
+
+| Campo | Tipo | Obrigatoriedade | Descrição |
+| :--- | :--- | :--- | :--- |
+| `chrome_identity_id` | String | **Obrigatório** | Identificador único do perfil do usuário no Google Chrome. |
+| `email` | String | Opcional | E-mail do cliente (segurança extra para validação). |
+
+---
+
+### Respostas (Status Codes e JSON)
+
+#### A. 200 OK - Sucesso (Desativada)
+Retornado quando a licença é encontrada e desvinculada do `chrome_identity_id`.
+```json
+{
+  "status": "success",
+  "message": "Licença desativada e desvinculada deste perfil com sucesso!"
+}
+```
+
+#### B. 200 OK - Sucesso Silencioso (Já Desvinculada)
+```json
+{
+  "status": "success",
+  "message": "Licença desativada deste perfil (já estava desvinculada)."
+}
+```
+
+#### C. 403 Forbidden - Email Incompatível
+```json
+{
+  "status": "error",
+  "message": "Acesso não autorizado. E-mail incompatível."
+}
+```
+
+#### D. 400 Bad Request - Parâmetros Ausentes
+```json
+{
+  "status": "error",
+  "message": "Parâmetro chrome_identity_id é obrigatório."
 }
 ```

@@ -10,9 +10,11 @@ use App\Controllers\CheckoutController;
 use App\Controllers\WebhookController;
 use App\Controllers\ActivationController;
 use App\Controllers\VerificationController;
+use App\Controllers\DeactivationController;
 use App\Controllers\FeedbackController;
 use App\Controllers\CampaignController;
 use App\Controllers\HealthCheckController;
+use App\Controllers\NotepadController;
 use Bramus\Router\Router;
 
 // Carrega variáveis do ambiente (.env)
@@ -60,6 +62,18 @@ $router->match('GET|POST', '/verify', function () use ($container) {
     $controller->handleRequest();
 });
 
+// Rota de Desativação de Licença: /deactivate
+$router->match('GET|POST', '/deactivate', function () use ($container) {
+    $controller = $container->get(DeactivationController::class);
+    $controller->handleRequest();
+});
+
+// Rota de Sincronização do Bloco de Notas: /notes (GET e POST)
+$router->match('GET|POST', '/notes', function () use ($container) {
+    $controller = $container->get(NotepadController::class);
+    $controller->handleRequest();
+});
+
 // Rota de Feedback e Novas Funcionalidades: /feedback
 $router->post('/feedback', function () use ($container) {
     $controller = $container->get(FeedbackController::class);
@@ -97,7 +111,7 @@ $router->set404(function () {
     http_response_code(404);
     echo json_encode([
         'status' => 'error',
-        'message' => 'Endpoint não encontrado.'
+        'message' => 'Endpoint not found.'
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 });
 

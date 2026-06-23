@@ -35,6 +35,7 @@ class Container
             // Configurações (como o appsettings.json do .NET)
             'settings' => [
                 'license_salt' => $_ENV['LICENSE_SALT'] ?? '',
+                'curl_ssl_no_verify' => filter_var($_ENV['CURL_SSL_NO_VERIFY'] ?? false, FILTER_VALIDATE_BOOLEAN) || ($_ENV['APP_ENV'] ?? '') === 'development' || ($_ENV['APP_ENV'] ?? '') === 'testing',
                 'asaas' => [
                     'url' => $_ENV['BASE_URL_ASAAS'] ?? '',
                     'token' => $_ENV['ASAAS_ACCESS_TOKEN'] ?? '',
@@ -50,7 +51,7 @@ class Container
                     'password' => $_ENV['MAIL_PASS'] ?? '',
                     'port' => $_ENV['MAIL_SMTP_PORT'] ?? '',
                     'from' => $_ENV['MAIL_FROM'] ?? ($_ENV['MAIL_USER'] ?? ''),
-                    'from_name' => $_ENV['MAIL_FROM_NAME'] ?? 'Exportador Histórico Pro Licença',
+                    'from_name' => $_ENV['MAIL_FROM_NAME'] ?? 'Salvar Conversas WhatsApp',
                 ],
                 'db' => [
                     'driver'   => $_ENV['DB_DRIVER'] ?? 'pdo_sqlite',
@@ -118,10 +119,12 @@ class Container
 
             PaymentGatewayInterface::class => function (ContainerInterface $c) {
                 $settings = $c->get('settings')['asaas'];
+                $disableSsl = $c->get('settings')['curl_ssl_no_verify'] ?? false;
                 return new AsaasService(
                     $settings['url'],
                     $settings['token'],
-                    $settings['app_name']
+                    $settings['app_name'],
+                    $disableSsl
                 );
             },
 
@@ -132,11 +135,13 @@ class Container
             LicenseServiceInterface::class => \DI\create(LicenseService::class),
 
             LandingPageSyncServiceInterface::class => \DI\autowire(LandingPageSyncService::class)
-                ->constructorParameter('webhookUrl', \DI\get('settings.landing_page.webhook_url')),
+                ->constructorParameter('webhookUrl', \DI\get('settings.landing_page.webhook_url'))
+                ->constructorParameter('disableSslVerify', \DI\get('settings.curl_ssl_no_verify')),
 
             DiscordServiceInterface::class => \DI\autowire(DiscordService::class)
                 ->constructorParameter('botToken', \DI\get('settings.discord.bot_token'))
-                ->constructorParameter('channelId', \DI\get('settings.discord.channel_id')),
+                ->constructorParameter('channelId', \DI\get('settings.discord.channel_id'))
+                ->constructorParameter('disableSslVerify', \DI\get('settings.curl_ssl_no_verify')),
 
             // Repositories
             \App\Interfaces\Repositories\CustomerRepositoryInterface::class => function (ContainerInterface $c) {
@@ -204,6 +209,9 @@ class Container
             // Atalhos (Shortcuts)
             'settings.license_salt' => function (ContainerInterface $c) {
                 return $c->get('settings')['license_salt'];
+            },
+            'settings.curl_ssl_no_verify' => function (ContainerInterface $c) {
+                return $c->get('settings')['curl_ssl_no_verify'];
             },
             'settings.landing_page.webhook_url' => function (ContainerInterface $c) {
                 return $c->get('settings')['landing_page']['webhook_url'];

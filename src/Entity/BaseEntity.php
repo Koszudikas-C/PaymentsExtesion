@@ -64,6 +64,11 @@ abstract class BaseEntity
         return $this->dateUpdated;
     }
 
+    public function setDateUpdated(\DateTime $dateUpdated): void
+    {
+        $this->dateUpdated = $dateUpdated;
+    }
+
     public function getSystemAccess(): \DateTime
     {
         return $this->systemAccess;
