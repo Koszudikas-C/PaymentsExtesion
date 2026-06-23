@@ -390,9 +390,9 @@ class PaymentReceivedProcessor implements WebhookProcessorInterface
 
     private function logDoublePayment(Customer $customer, string $paymentId, array $paymentData): void
     {
-        $logFile = ($_ENV['APP_ENV'] ?? '') === 'testing'
+        $logFile = defined('PHPUNIT_RUNNING') && PHPUNIT_RUNNING
             ? __DIR__ . '/../../../logs_test/double_payments.json'
-            : __DIR__ . '/../../../logs/double_payments.json';
+            : __DIR__ . '/../../../data/double_payments.json';
         $dir = dirname($logFile);
         if (!is_dir($dir)) {
             mkdir($dir, 0777, true);

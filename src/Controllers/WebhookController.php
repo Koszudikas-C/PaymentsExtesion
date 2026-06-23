@@ -87,7 +87,7 @@ class WebhookController
     private function saveToFallbackFile(string $errorMsg, ?array $data, string $payloadToSave): void
     {
         try {
-            $fallbackDir = __DIR__ . '/../../logs';
+            $fallbackDir = __DIR__ . '/../../data';
             if (!is_dir($fallbackDir)) {
                 mkdir($fallbackDir, 0777, true);
             }

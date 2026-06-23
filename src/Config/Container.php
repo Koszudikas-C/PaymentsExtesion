@@ -87,8 +87,9 @@ class Container
             Logger::class => function (ContainerInterface $c) {
                 $log = new Logger('payments');
                 
+                $month = date('Y-m');
                 // Handler 1: Log Rotativo (Histórico para auditoria e Sync CLI)
-                $fileHandler = new RotatingFileHandler(__DIR__ . '/../../logs/app.log', 30, Logger::DEBUG);
+                $fileHandler = new RotatingFileHandler(__DIR__ . "/../../logs/{$month}/app.log", 30, Logger::DEBUG);
                 $fileHandler->setFormatter(new \Monolog\Formatter\JsonFormatter());
                 $log->pushHandler($fileHandler);
 
@@ -104,8 +105,9 @@ class Container
             'logger.retry' => function (ContainerInterface $c) {
                 $log = new Logger('retry_task');
                 
+                $month = date('Y-m');
                 // Handler 1: Arquivo separado para Retry
-                $fileHandler = new RotatingFileHandler(__DIR__ . '/../../logs/retry.log', 7, Logger::DEBUG);
+                $fileHandler = new RotatingFileHandler(__DIR__ . "/../../logs/{$month}/retry.log", 7, Logger::DEBUG);
                 $fileHandler->setFormatter(new \Monolog\Formatter\JsonFormatter());
                 $log->pushHandler($fileHandler);
 

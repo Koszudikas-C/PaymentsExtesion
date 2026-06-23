@@ -25,7 +25,7 @@ class SyncLogsCommand extends Command
         parent::__construct();
         $this->discordService = $discordService;
         $this->logDir = $logDir;
-        $this->stateFile = rtrim($logDir, '/') . '/sync_state.json';
+        $this->stateFile = __DIR__ . '/../../data/sync_state.json';
     }
 
     protected function configure(): void
