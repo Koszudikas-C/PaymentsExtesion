@@ -437,3 +437,6 @@ vendor
 composer.lock
 package-lock.json
 src/Migrations/*
+coverage/*
+logs/*
+data/*
