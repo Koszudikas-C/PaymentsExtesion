@@ -81,7 +81,16 @@ class NotepadController
                     $this->respondWithError(400, 'The jid parameter is required to save.');
                     return;
                 }
-                $this->handlePost($customer, $ownerJid, $jid, $params['note'] ?? null, $params['updated_at'] ?? null);
+                $note = $params['note'] ?? null;
+                if ($note === null || trim($note) === '') {
+                    $this->respondWithJson(200, [
+                        'status' => 'success',
+                        'message' => 'Empty note ignored.',
+                        'hash' => hash('sha256', '')
+                    ]);
+                    return;
+                }
+                $this->handlePost($customer, $ownerJid, $jid, $note, $params['updated_at'] ?? null);
             } else {
                 $this->respondWithError(405, 'Method not allowed.');
             }

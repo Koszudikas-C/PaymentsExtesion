@@ -95,9 +95,18 @@ class ProcessNotepadQueueCommand extends Command
             }
 
             try {
+                if (!isset($item['note']) || $item['note'] === null || trim((string)$item['note']) === '') {
+                    $output->writeln("<info>Ignored empty note in queue for " . ($item['jid'] ?? 'unknown') . "</info>");
+                    $i++;
+                    continue;
+                }
                 $customer = $customerRepo->find($item['customer_id']);
                 if ($customer && !empty($item['jid'])) {
-                    $notepad = $notepadRepo->findOneBy(['customer' => $customer, 'jid' => $item['jid']]);
+                    $notepad = $notepadRepo->findOneBy([
+                        'customer' => $customer,
+                        'ownerJid' => $item['owner_jid'] ?? null,
+                        'jid' => $item['jid']
+                    ]);
                     $shouldUpdate = true;
                     
                     if ($notepad) {
@@ -112,12 +121,15 @@ class ProcessNotepadQueueCommand extends Command
                             }
                         }
                     } else {
-                        $notepad = new Notepad($customer, $item['jid']);
+                        $notepad = new Notepad($customer, $item['jid'], $item['owner_jid'] ?? null);
                         $this->entityManager->persist($notepad);
                     }
                     
                     if ($shouldUpdate) {
                         $notepad->setNote($item['note'] ?? null);
+                        if (isset($item['owner_jid'])) {
+                            $notepad->setOwnerJid($item['owner_jid']);
+                        }
                         
                         if (isset($item['updated_at'])) {
                             $itemSeconds = (int)($item['updated_at'] / 1000);
@@ -132,7 +144,14 @@ class ProcessNotepadQueueCommand extends Command
             } catch (\Exception $e) {
                 $output->writeln("<error>Failed to prepare item {$item['customer_id']}: {$e->getMessage()}</error>");
                 $item['retry_count']++;
-                $this->queueService->enqueue($item['customer_id'], $item['jid'] ?? '', $item['note'] ?? null, $item['retry_count']);
+                $this->queueService->enqueue(
+                    $item['customer_id'],
+                    $item['owner_jid'] ?? '',
+                    $item['jid'] ?? '',
+                    $item['note'] ?? null,
+                    $item['updated_at'] ?? null,
+                    $item['retry_count']
+                );
             }
 
             $i++;
@@ -225,7 +244,14 @@ class ProcessNotepadQueueCommand extends Command
         // Devolve os itens pra fila através do QueueService (que vai reavaliar a RAM/CPU)
         foreach ($remainingItems as $item) {
             $item['retry_count'] = ($item['retry_count'] ?? 0) + 1;
-            $this->queueService->enqueue($item['customer_id'], $item['jid'] ?? '', $item['note'] ?? null, $item['updated_at'] ?? null, $item['retry_count']);
+            $this->queueService->enqueue(
+                $item['customer_id'],
+                $item['owner_jid'] ?? '',
+                $item['jid'] ?? '',
+                $item['note'] ?? null,
+                $item['updated_at'] ?? null,
+                $item['retry_count']
+            );
         }
     }
 
