@@ -5,19 +5,22 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Interfaces\Repositories\CustomerRepositoryInterface;
-use App\Entity\Customer;
+use App\Interfaces\Services\AuthTokenServiceInterface;
 use Monolog\Logger;
 
 class ActivationController
 {
     private CustomerRepositoryInterface $customerRepository;
+    private AuthTokenServiceInterface $authTokenService;
     private Logger $logger;
 
     public function __construct(
         CustomerRepositoryInterface $customerRepository,
+        AuthTokenServiceInterface $authTokenService,
         Logger $logger
     ) {
         $this->customerRepository = $customerRepository;
+        $this->authTokenService = $authTokenService;
         $this->logger = $logger;
     }
 
@@ -93,7 +96,7 @@ class ActivationController
                     $this->customerRepository->save($customer);
                     $durationSave = round((microtime(true) - $startSave) * 1000, 2);
                     $this->logPerformance('CustomerRepository', 'save', $durationSave, 'Force Transfer');
-                    
+
                     $this->logger->info('License transferred to new chrome identity', [
                         'email' => $customer->getEmail(),
                         'new_chrome_identity_id' => $params['chrome_identity_id']
@@ -122,7 +125,7 @@ class ActivationController
                     $existingBoundCustomer->setChromeIdentityId(null);
                     $existingBoundCustomer->recordAudit('CHROME_ID_UNBOUND', "Unbound Chrome Identity because it was linked to a new license: " . $customer->getLicenseKey());
                     $this->customerRepository->save($existingBoundCustomer);
-                    
+
                     $this->logger->info('Unbound chrome identity from other customer', [
                         'other_customer_email' => $existingBoundCustomer->getEmail(),
                         'chrome_identity_id' => $params['chrome_identity_id']
@@ -142,6 +145,16 @@ class ActivationController
                 ]);
             }
 
+            // Gera os tokens (Access e Refresh)
+            $clientIp = $_SERVER['REMOTE_ADDR'] ?? null;
+            $accessToken = $this->authTokenService->generateAccessToken($customer->getId(), $customer->getEmail(), $params['chrome_identity_id'], $clientIp);
+            $refreshToken = $this->authTokenService->generateRefreshToken();
+
+            $customer->setLastIpAddress($clientIp);
+            $customer->setRefreshTokenHash(password_hash($refreshToken, PASSWORD_DEFAULT));
+            $customer->setRefreshTokenExpiresAt((new \DateTime('now'))->modify('+1 year'));
+            $this->customerRepository->save($customer);
+
             $duration = round((microtime(true) - $startTime) * 1000, 2);
             $this->logPerformance('ActivationController', 'handleRequest', $duration);
 
@@ -150,12 +163,14 @@ class ActivationController
                 'message' => 'Extension successfully activated!',
                 'licenseKey' => $customer->getLicenseKey(),
                 'plan' => $customer->getPlan(),
-                'expiresAt' => $customer->getLicenseExpiresAt() ? $customer->getLicenseExpiresAt()->format('Y-m-d H:i:s') : null
+                'expiresAt' => $customer->getLicenseExpiresAt() ? $customer->getLicenseExpiresAt()->format('Y-m-d H:i:s') : null,
+                'accessToken' => $accessToken,
+                'refreshToken' => $refreshToken
             ]);
 
         } catch (\Throwable $e) {
             $this->logException($e);
-            $this->respondWithError(500, 'Internal server error.');
+            $this->respondWithError(500, 'Internal server error: ' . $e->getMessage());
         }
     }
 
@@ -217,7 +232,7 @@ class ActivationController
             return null;
         }
         $email = filter_var($rawEmail, FILTER_SANITIZE_EMAIL);
-        $email = strtolower(trim((string)$email));
+        $email = strtolower(trim((string) $email));
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return null;
         }
@@ -274,13 +289,13 @@ class ActivationController
 
     private function logPerformance(string $class, string $method, float $durationMs, string $additionalInfo = ''): void
     {
-        $threshold = (float)($_ENV['PERFORMANCE_THRESHOLD_MS'] ?? 1000.0);
+        $threshold = (float) ($_ENV['PERFORMANCE_THRESHOLD_MS'] ?? 1000.0);
         $isAlert = $durationMs > $threshold;
         $level = $isAlert ? 'error' : 'info';
         $tag = $isAlert ? '[PERFORMANCE_ALERT]' : '[PERFORMANCE]';
-        
+
         $message = "{$tag} {$class}::{$method}" . ($additionalInfo !== '' ? " ({$additionalInfo})" : "") . " took {$durationMs}ms";
-        
+
         $this->logger->$level($message, [
             'type' => 'performance',
             'class' => $class,

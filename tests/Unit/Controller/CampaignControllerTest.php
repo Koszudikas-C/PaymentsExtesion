@@ -10,17 +10,20 @@ use Monolog\Logger;
 class CampaignControllerTest extends TestCase
 {
     private CustomerRepositoryInterface|\PHPUnit\Framework\MockObject\MockObject $repository;
+    private \App\Interfaces\Services\AuthTokenServiceInterface|\PHPUnit\Framework\MockObject\MockObject $authTokenService;
     private Logger|\PHPUnit\Framework\MockObject\MockObject $logger;
 
     protected function setUp(): void
     {
         $this->repository = $this->createMock(CustomerRepositoryInterface::class);
+        $this->authTokenService = $this->createMock(\App\Interfaces\Services\AuthTokenServiceInterface::class);
+        $this->authTokenService->method('isOriginAllowedForBypass')->willReturn(true);
         $this->logger = $this->createMock(Logger::class);
     }
 
     public function testGetStatsSuccess()
     {
-        $controller = new CampaignController($this->repository, $this->logger, 100);
+        $controller = new CampaignController($this->repository, $this->authTokenService, $this->logger, 100);
 
         $this->repository->expects($this->once())
             ->method('countPaidLifetimeCustomers')
@@ -39,7 +42,7 @@ class CampaignControllerTest extends TestCase
 
     public function testGetStatsErrorInvalidTarget()
     {
-        $controller = new CampaignController($this->repository, $this->logger, 0);
+        $controller = new CampaignController($this->repository, $this->authTokenService, $this->logger, 0);
 
         $this->logger->expects($this->once())
             ->method('error')
@@ -56,7 +59,7 @@ class CampaignControllerTest extends TestCase
     public function testGetStatsOptionsRequest()
     {
         $_SERVER['REQUEST_METHOD'] = 'OPTIONS';
-        $controller = new CampaignController($this->repository, $this->logger, 100);
+        $controller = new CampaignController($this->repository, $this->authTokenService, $this->logger, 100);
 
         ob_start();
         $controller->getStats();
@@ -68,7 +71,7 @@ class CampaignControllerTest extends TestCase
 
     public function testGetStatsException()
     {
-        $controller = new CampaignController($this->repository, $this->logger, 100);
+        $controller = new CampaignController($this->repository, $this->authTokenService, $this->logger, 100);
 
         $this->repository->expects($this->once())
             ->method('countPaidLifetimeCustomers')

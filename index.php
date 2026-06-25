@@ -11,6 +11,7 @@ use App\Controllers\WebhookController;
 use App\Controllers\ActivationController;
 use App\Controllers\VerificationController;
 use App\Controllers\DeactivationController;
+use App\Controllers\AuthController;
 use App\Controllers\FeedbackController;
 use App\Controllers\CampaignController;
 use App\Controllers\HealthCheckController;
@@ -66,6 +67,12 @@ $router->match('GET|POST', '/verify', function () use ($container) {
 $router->match('GET|POST', '/deactivate', function () use ($container) {
     $controller = $container->get(DeactivationController::class);
     $controller->handleRequest();
+});
+
+// Rota de Atualização de Token: /refresh
+$router->post('/refresh', function () use ($container) {
+    $controller = $container->get(AuthController::class);
+    $controller->handleRefresh();
 });
 
 // Rota de Sincronização do Bloco de Notas: /notes (GET e POST)

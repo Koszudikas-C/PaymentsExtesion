@@ -5,20 +5,24 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Interfaces\Repositories\CustomerRepositoryInterface;
+use App\Interfaces\Services\AuthTokenServiceInterface;
 use Monolog\Logger;
 
 class CampaignController
 {
     private CustomerRepositoryInterface $customerRepository;
+    private AuthTokenServiceInterface $authTokenService;
     private Logger $logger;
     private int $target;
 
     public function __construct(
         CustomerRepositoryInterface $customerRepository,
+        AuthTokenServiceInterface $authTokenService,
         Logger $logger,
         int $target
     ) {
         $this->customerRepository = $customerRepository;
+        $this->authTokenService = $authTokenService;
         $this->logger = $logger;
         $this->target = $target;
     }
@@ -32,6 +36,13 @@ class CampaignController
         header('Content-Type: application/json; charset=utf-8');
 
         if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'OPTIONS') {
+            return;
+        }
+
+        $origin = $_SERVER['HTTP_ORIGIN'] ?? null;
+        if (!$this->authTokenService->isOriginAllowedForBypass($origin)) {
+            http_response_code(403);
+            echo json_encode(['status' => 'error', 'message' => 'Unauthorized domain']);
             return;
         }
 

@@ -10,10 +10,12 @@ use App\Interfaces\PaymentGatewayInterface;
 use App\Interfaces\EmailServiceInterface;
 use App\Interfaces\LicenseServiceInterface;
 use App\Interfaces\LandingPageSyncServiceInterface;
+use App\Interfaces\Services\AuthTokenServiceInterface;
 use App\Services\AsaasService;
 use App\Services\PHPMailerService;
 use App\Services\LicenseService;
 use App\Services\LandingPageSyncService;
+use App\Services\AuthTokenService;
 use App\Handlers\WebhookHandler;
 use App\Handlers\Processors\PaymentReceivedProcessor;
 use App\Factories\WebhookProcessorFactory;
@@ -135,6 +137,8 @@ class Container
             },
 
             LicenseServiceInterface::class => \DI\create(LicenseService::class),
+            
+            AuthTokenServiceInterface::class => \DI\autowire(AuthTokenService::class),
 
             LandingPageSyncServiceInterface::class => \DI\autowire(LandingPageSyncService::class)
                 ->constructorParameter('webhookUrl', \DI\get('settings.landing_page.webhook_url'))

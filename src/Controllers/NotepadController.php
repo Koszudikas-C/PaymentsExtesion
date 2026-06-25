@@ -41,13 +41,15 @@ class NotepadController
             $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
             $chromeId = $params['chrome_identity_id'] ?? null;
-            if (empty($chromeId)) {
-                $this->respondWithError(400, 'Parameter chrome_identity_id is required.');
+            $accessToken = $this->extractAccessToken();
+
+            if (empty($chromeId) && empty($accessToken)) {
+                $this->respondWithError(400, 'Parameter chrome_identity_id or access_token is required.');
                 return;
             }
 
             // Validação de Identidade usando o Serviço
-            $customerResult = $this->validationService->validateRequest($chromeId, $params['email'] ?? null);
+            $customerResult = $this->validationService->validateRequest($accessToken, $chromeId, $params['email'] ?? null);
 
             // Retorno de erro mapeado (Falha de Autenticação / Licença não encontrada)
             if (is_array($customerResult)) {
@@ -260,6 +262,23 @@ class NotepadController
         return ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'OPTIONS';
     }
 
+    private function extractAccessToken(): ?string
+    {
+        $authHeader = '';
+        if (function_exists('getallheaders')) {
+            $headers = getallheaders();
+            $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? '';
+        }
+        if (empty($authHeader)) {
+            $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+        }
+
+        if (preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
+            return $matches[1];
+        }
+        return $_REQUEST['access_token'] ?? null;
+    }
+
     private function captureAndSanitizeInputs(): array
     {
         $rawInput = file_get_contents('php://input') ?: '';
@@ -295,7 +314,7 @@ class NotepadController
     private function setupCorsHeaders(): void
     {
         header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-        header('Access-Control-Allow-Headers: Content-Type, X-Requested-With');
+        header('Access-Control-Allow-Headers: Content-Type, X-Requested-With, Authorization');
     }
 
     private function respondWithJson(int $statusCode, array $data): void

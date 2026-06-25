@@ -35,8 +35,11 @@ class VerificationController
             $params = $this->captureAndSanitizeInputs();
 
             // chrome_identity_id, extension_id são sempre obrigatórios; email opcional para fallback
-            if (empty($params['chrome_identity_id']) || empty($params['extension_id'])) {
-                $this->respondWithError(400, 'Parameters chrome_identity_id and extension_id are required.');
+            $accessToken = $this->extractAccessToken();
+            $chromeId = $params['chrome_identity_id'] ?? null;
+
+            if ((empty($chromeId) && empty($accessToken)) || empty($params['extension_id'])) {
+                $this->respondWithError(400, 'Parameters chrome_identity_id (or access token) and extension_id are required.');
                 return;
             }
 
@@ -47,7 +50,7 @@ class VerificationController
             }
 
             // Validação usando o serviço compartilhado
-            $customerResult = $this->validationService->validateRequest($params['chrome_identity_id'], $params['email']);
+            $customerResult = $this->validationService->validateRequest($accessToken, $chromeId, $params['email']);
 
             if (is_array($customerResult)) {
                 // Retorna erro ou conflito
@@ -87,6 +90,23 @@ class VerificationController
     private function isPreflightRequest(): bool
     {
         return ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'OPTIONS';
+    }
+
+    private function extractAccessToken(): ?string
+    {
+        $authHeader = '';
+        if (function_exists('getallheaders')) {
+            $headers = getallheaders();
+            $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? '';
+        }
+        if (empty($authHeader)) {
+            $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+        }
+
+        if (preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
+            return $matches[1];
+        }
+        return $_REQUEST['access_token'] ?? null;
     }
 
     private function isValidExtensionId(string $extensionId): bool
@@ -151,9 +171,8 @@ class VerificationController
 
     private function setupCorsHeaders(): void
     {
-
         header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-        header('Access-Control-Allow-Headers: Content-Type, X-Requested-With');
+        header('Access-Control-Allow-Headers: Content-Type, X-Requested-With, Authorization');
     }
 
     private function respondWithJson(int $statusCode, array $data): void

@@ -43,7 +43,7 @@ class VerificationControllerTest extends TestCase
 
         $response = json_decode($output, true);
         $this->assertEquals('error', $response['status']);
-        $this->assertStringContainsString('Parameters chrome_identity_id and extension_id are required.', $response['message']);
+        $this->assertStringContainsString('Parameters chrome_identity_id (or access token) and extension_id are required.', $response['message']);
     }
 
     public function testHandleRequestInvalidExtensionIdReturns403()
@@ -73,7 +73,7 @@ class VerificationControllerTest extends TestCase
 
         $this->validationService->expects($this->once())
             ->method('validateRequest')
-            ->with('chrome_user_123', null)
+            ->with(null, 'chrome_user_123', null)
             ->willReturn([
                 'status' => 'not_found',
                 'message' => 'No active license linked to this profile.'
@@ -105,7 +105,7 @@ class VerificationControllerTest extends TestCase
 
         $this->validationService->expects($this->once())
             ->method('validateRequest')
-            ->with('chrome_user_123', null)
+            ->with(null, 'chrome_user_123', null)
             ->willReturn($activeCustomer);
 
         $controller = new VerificationController($this->validationService, $this->logger);
@@ -134,7 +134,7 @@ class VerificationControllerTest extends TestCase
 
         $this->validationService->expects($this->once())
             ->method('validateRequest')
-            ->with('chrome_user_123', null)
+            ->with(null, 'chrome_user_123', null)
             ->willReturn($inactiveCustomer);
 
         $controller = new VerificationController($this->validationService, $this->logger);
@@ -242,7 +242,7 @@ class VerificationControllerTest extends TestCase
         // validateRequest receives null for email because of sanitization
         $this->validationService->expects($this->once())
             ->method('validateRequest')
-            ->with('c1', null)
+            ->with(null, 'c1', null)
             ->willReturn([
                 'status' => 'not_found',
                 'message' => 'Nenhuma licença ativa vinculada a este perfil.'

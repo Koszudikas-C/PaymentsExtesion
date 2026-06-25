@@ -61,6 +61,8 @@ class DeactivationController
             }
 
             $customer->setChromeIdentityId(null);
+            $customer->setRefreshTokenHash(null);
+            $customer->setRefreshTokenExpiresAt(null);
             $customer->recordAudit('LICENSE_DEACTIVATED', "License deactivated manually from Chrome Identity: {$params['chrome_identity_id']}");
             $this->customerRepository->save($customer);
 

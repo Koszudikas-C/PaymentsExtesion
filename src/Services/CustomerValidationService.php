@@ -4,29 +4,58 @@ namespace App\Services;
 
 use App\Entity\Customer;
 use App\Interfaces\Repositories\CustomerRepositoryInterface;
+use App\Interfaces\Services\AuthTokenServiceInterface;
 use Monolog\Logger;
 
 class CustomerValidationService
 {
     private CustomerRepositoryInterface $customerRepository;
+    private AuthTokenServiceInterface $authTokenService;
     private Logger $logger;
 
     public function __construct(
         CustomerRepositoryInterface $customerRepository,
+        AuthTokenServiceInterface $authTokenService,
         Logger $logger
     ) {
         $this->customerRepository = $customerRepository;
+        $this->authTokenService = $authTokenService;
         $this->logger = $logger;
     }
 
     /**
-     * Valida a requisição do usuário verificando o chrome_identity_id e/ou email.
+     * Valida a requisição do usuário verificando o token JWT, e em fallback o chrome_identity_id e/ou email.
      * Retorna o Customer se a validação for bem-sucedida, lança exceção ou retorna array com erro se falhar.
      * 
      * @return Customer|array
      */
-    public function validateRequest(string $chromeIdentityId, ?string $email)
+    public function validateRequest(?string $accessToken, ?string $chromeIdentityId = null, ?string $email = null)
     {
+        if (!empty($accessToken)) {
+            try {
+                $clientIp = $_SERVER['REMOTE_ADDR'] ?? null;
+                $payload = $this->authTokenService->validateAccessToken($accessToken, $clientIp);
+                $customer = $this->customerRepository->find($payload->sub);
+                
+                if ($customer) {
+                    return $customer;
+                }
+            } catch (\Throwable $e) {
+                return [
+                    'status' => 'unauthorized',
+                    'message' => 'Invalid or expired access token: ' . $e->getMessage()
+                ];
+            }
+        }
+
+        // Fallback para versões mais antigas da extensão (sem token)
+        if (empty($chromeIdentityId)) {
+            return [
+                'status' => 'unauthorized',
+                'message' => 'Access token or chrome_identity_id is required.'
+            ];
+        }
+
         // Primeiro tenta localizar pelo chrome_identity_id
         $startChromeLookup = microtime(true);
         $customer = $this->customerRepository->findByChromeIdentityId($chromeIdentityId);

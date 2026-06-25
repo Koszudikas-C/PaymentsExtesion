@@ -153,4 +153,35 @@ class CustomerTest extends TestCase
         $customer->setLicenseExpiresAt($futureDate);
         $this->assertTrue($customer->isLicenseActive(), "Should be true if expiration date is in the future for unknown plan");
     }
+
+    public function testTokenFieldsCanBeSetAndRetrieved(): void
+    {
+        $customer = new Customer('John Doe', 'john@example.com', '123456789');
+
+        $hash = '$2y$10$abcdefg1234567890';
+        $customer->setRefreshTokenHash($hash);
+        $this->assertSame($hash, $customer->getRefreshTokenHash());
+
+        $expiresAt = new \DateTime('2027-01-01 10:00:00');
+        $customer->setRefreshTokenExpiresAt($expiresAt);
+        $this->assertSame($expiresAt, $customer->getRefreshTokenExpiresAt());
+
+        $ip = '192.168.1.1';
+        $customer->setLastIpAddress($ip);
+        $this->assertSame($ip, $customer->getLastIpAddress());
+    }
+
+    public function testTokenFieldsCanBeNull(): void
+    {
+        $customer = new Customer('John Doe', 'john@example.com', '123456789');
+
+        $customer->setRefreshTokenHash(null);
+        $this->assertNull($customer->getRefreshTokenHash());
+
+        $customer->setRefreshTokenExpiresAt(null);
+        $this->assertNull($customer->getRefreshTokenExpiresAt());
+
+        $customer->setLastIpAddress(null);
+        $this->assertNull($customer->getLastIpAddress());
+    }
 }

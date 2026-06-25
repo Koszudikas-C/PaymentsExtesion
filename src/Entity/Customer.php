@@ -49,6 +49,15 @@ class Customer extends BaseEntity
     #[ORM\Column(length: 20, nullable: true)]
     private ?string $fallbackPlan = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $refreshTokenHash = null;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTime $refreshTokenExpiresAt = null;
+
+    #[ORM\Column(length: 45, nullable: true)]
+    private ?string $lastIpAddress = null;
+
     #[ORM\OneToMany(mappedBy: 'customer', targetEntity: AuditLog::class, cascade: ['persist', 'remove'])]
     private Collection $auditLogs;
 
@@ -142,6 +151,15 @@ class Customer extends BaseEntity
 
     public function getChromeIdentityId(): ?string { return $this->chromeIdentityId; }
     public function setChromeIdentityId(?string $chromeIdentityId): void { $this->chromeIdentityId = $chromeIdentityId; }
+
+    public function getRefreshTokenHash(): ?string { return $this->refreshTokenHash; }
+    public function setRefreshTokenHash(?string $refreshTokenHash): void { $this->refreshTokenHash = $refreshTokenHash; }
+
+    public function getRefreshTokenExpiresAt(): ?\DateTime { return $this->refreshTokenExpiresAt; }
+    public function setRefreshTokenExpiresAt(?\DateTime $refreshTokenExpiresAt): void { $this->refreshTokenExpiresAt = $refreshTokenExpiresAt; }
+
+    public function getLastIpAddress(): ?string { return $this->lastIpAddress; }
+    public function setLastIpAddress(?string $lastIpAddress): void { $this->lastIpAddress = $lastIpAddress; }
 
     public function isLicenseActive(): bool
     {
