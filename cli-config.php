@@ -9,7 +9,12 @@ use Doctrine\Migrations\Configuration\Migration\PhpFile;
 use Doctrine\DBAL\DriverManager;
 use Dotenv\Dotenv;
 
-$dotenv = Dotenv::createImmutable(__DIR__);
+$dotenvPath = __DIR__;
+if (file_exists($dotenvPath . '/.env.production.migration')) {
+    $dotenvMigration = Dotenv::createImmutable($dotenvPath, '.env.production.migration');
+    $dotenvMigration->load();
+}
+$dotenv = Dotenv::createImmutable($dotenvPath);
 $dotenv->load();
 
 $config = new PhpFile('migrations.php');
