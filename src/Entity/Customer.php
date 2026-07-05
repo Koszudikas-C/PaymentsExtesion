@@ -193,7 +193,8 @@ class Customer extends BaseEntity
         return $this->licenseExpiresAt > new \DateTime('now');
     }
 
-    #[ORM\PreUpdate]
+    /** @codeCoverageIgnore */
+#[ORM\PreUpdate]
     public function onPreUpdate(): void { $this->dateUpdated = new \DateTime('now'); }
 
     public function getAuditLogs(): Collection { return $this->auditLogs; }
